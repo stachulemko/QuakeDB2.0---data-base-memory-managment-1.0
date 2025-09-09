@@ -1,0 +1,53 @@
+
+___________________________________
+|             table               | 
+|types with allow Null            |   - size = number of raws * 4 bit + number of raws * 1 bit
+|oid indetification               |   - 32 bit
+|contain toast                    |   - 1 bit
+|column names                     |   - ~
+|owner                            |   - 
+|number of blocks                 |   - 
+|pg_namespace shema_status(public)|   -
+|pg_constraint - keys information |   -
+|rights                           |   -
+-----------------------------------
+-----------------------------------
+|         data block 8kb          |
+|types with allow Null            |   - 
+|pd_lsn - for wall indetification |   -
+|pd_checksum - control sum        |   -
+|pd_flags - state flag            |   -
+|pd_lower - free space start      |   -
+|pd_upper - free space end        |   -      
+|contain toast                    |
+----------------------------------
+-------------------------- row ----------------------------------
++-----------------------+
+| t_xmin                | <-- id of transaction which created 
++-----------------------+
+| t_xmax                | <-- id of transaction which delted (optional)
++-----------------------+
+| t_cid / t_infomask2   | <-- id instruction  
++-----------------------+
+| t_infomask            | <-- NULL , TOAST
++-----------------------+
+| t_hoff                | <-- num where clear data start
++-----------------------+
+| Null bitmap           | <-- depend on the number of rows 
++-----------------------+
+| Optional OID          | <-- OID indetification optional 
++-----------------------+
+| Dane kolumn (data)    | <-- data 
++-----------------------+
+| free space            | <-- free space - optional with large number of updates 
++-----------------------+
+
+
+
+
+xmin, xmax represent transaction ��s; they are used to differentiate between this and
+other versions of the same row.
+infomask provides a set of information bits that define version properties.
+ctid is a pointer to the next updated version of the same row.
+null bitmap is an array of bits marking the columns that can contain ���� values
+
