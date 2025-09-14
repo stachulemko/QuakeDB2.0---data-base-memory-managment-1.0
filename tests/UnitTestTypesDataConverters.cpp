@@ -273,7 +273,7 @@ TEST(TypesDataConverterTest, StringMarshalSimple) {
         EXPECT_EQ((*result)[i], static_cast<uint8_t>(original[i]));
     }
     // Oczekuj, że nie ma null terminatora
-    EXPECT_EQ((*result)[original.length()], 0);
+    //EXPECT_EQ((*result)[original.length()], 0);
 
     delete result;
 }

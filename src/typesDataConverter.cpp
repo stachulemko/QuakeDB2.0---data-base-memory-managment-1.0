@@ -18,6 +18,12 @@ std::vector<uint8_t>* marshalBool(bool val) {
     return result;
 }
 
+std::vector<uint8_t>* marshalInt8_t(int8_t val){
+    std::vector<uint8_t>* bytes = new std::vector<uint8_t>(1);
+    (*bytes)[0] = static_cast<uint8_t>(val);
+    return bytes;
+}
+
 std::vector<uint8_t>* marshalInt16_t(int16_t val) {
     std::vector<uint8_t>* bytes = new std::vector<uint8_t>(2);
     (*bytes)[0] = static_cast<uint8_t>(val & 0xFF);
@@ -101,6 +107,14 @@ void UnmarshalString(std::string* val, std::vector<uint8_t>* stringInBinary) {
         return;
     }
     *val = std::string(stringInBinary->begin(), stringInBinary->end());
+}
+
+void UnmarshalInt8_t(int8_t* val, std::vector<uint8_t>* int8InBinary){
+    if(val == nullptr || int8InBinary == nullptr || int8InBinary->size() < 1) {
+        //returnCheckPoint=true;
+        return; 
+    }
+    *val = static_cast<int8_t>((*int8InBinary)[0]);
 }
 
 void UnmarshalBool(bool* val, std::vector<uint8_t>* boolInBinary) {

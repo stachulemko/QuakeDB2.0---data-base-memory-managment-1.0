@@ -8,6 +8,7 @@
 #include <cstdint>
 
 /*
+
 +-----------------------+
 | t_xmin                | <-- id of transaction which created 
 +-----------------------+
@@ -73,10 +74,15 @@ class HeaderTuple {
         void setNullBitmap(bool value) { null_bitmap = value; }
         void setOptionalOid(int64_t value) { optional_oid = value; }
 
-        std::bitset<280> marshallHeaderTuple(int64_t t_xmin, int64_t t_xmax, int32_t t_cid, 
-                                           int32_t t_infomask, int16_t t_hoff, 
-                                           bool null_bitmap, int64_t optional_oid) {
-            std::bitset<280> tupleHeader;
+
+        std::vector<uint8_t> marshallHeaderTupleWithData(){
+            return marshallHeaderTuple(t_xmin ,t_xmax,t_cid,t_infomask,t_hoff,null_bitmap,optional_oid);
+        }
+        std::vector<uint8_t> marshallHeaderTuple(int64_t t_xmin, int64_t t_xmax, int32_t t_cid, 
+                                                 int32_t t_infomask, int16_t t_hoff, 
+                                                 bool null_bitmap, int64_t optional_oid) {
+            std::vector<uint8_t> tupleHeader;
+            //tupleHeader.resize(35); 
             
             std::vector<uint8_t>* txMin = marshalInt64_t(t_xmin);
             std::vector<uint8_t>* txMax = marshalInt64_t(t_xmax);
@@ -86,27 +92,14 @@ class HeaderTuple {
             std::vector<uint8_t>* nullBitmap = marshalBool(null_bitmap);
             std::vector<uint8_t>* optionalOid = marshalInt64_t(optional_oid);
 
-            size_t bit_offset = 0;
-
-            auto copyBytesToBitset = [&](std::vector<uint8_t>* vec, int maxBits) {
-                for (size_t i = 0; i < vec->size() && bit_offset < 280 && maxBits > 0; ++i) {
-                    for (int bit = 0; bit < 8 && bit_offset < 280 && maxBits > 0; ++bit, --maxBits) {
-                        if ((*vec)[i] & (1 << bit)) {
-                            tupleHeader.set(bit_offset);
-                        }
-                        bit_offset++;
-                    }
-                }
-            };
+            tupleHeader.insert(tupleHeader.end(),txMin->begin(),txMin->end());
+            tupleHeader.insert(tupleHeader.end(),txMax->begin(),txMax->end());
+            tupleHeader.insert(tupleHeader.end(),tCid->begin(),tCid->end());
+            tupleHeader.insert(tupleHeader.end(),tInfomask->begin(),tInfomask->end());
+            tupleHeader.insert(tupleHeader.end(),tHoff->begin(),tHoff->end());
+            tupleHeader.insert(tupleHeader.end(),nullBitmap->begin(),nullBitmap->end());
+            tupleHeader.insert(tupleHeader.end(),optionalOid->begin(),optionalOid->end());
             
-            copyBytesToBitset(txMin, 64);      // t_xmin: 64 bity
-            copyBytesToBitset(txMax, 64);      // t_xmax: 64 bity
-            copyBytesToBitset(tCid, 32);       // t_cid: 32 bity
-            copyBytesToBitset(tInfomask, 32);  // t_infomask: 32 bity
-            copyBytesToBitset(tHoff, 16);      // t_hoff: 16 bitów
-            copyBytesToBitset(nullBitmap, 1);  // null_bitmap: 1 bit
-            copyBytesToBitset(optionalOid, 64); // optional_oid: 64 bity
-
             delete txMin;
             delete txMax;
             delete tCid;
@@ -118,57 +111,34 @@ class HeaderTuple {
             return tupleHeader;
         }
         
-        void unmarshallHeaderTuple(const std::bitset<280>& tupleHeader) {
-            size_t offset = 0;
-            
-            std::vector<uint8_t>* txMinBytes = bitsetToVector(tupleHeader, offset, 64);
-            UnmarshalInt64_t(&t_xmin, txMinBytes);
-            delete txMinBytes;
-            
-            std::vector<uint8_t>* txMaxBytes = bitsetToVector(tupleHeader, offset, 64);
-            UnmarshalInt64_t(&t_xmax, txMaxBytes);
-            delete txMaxBytes;
-            
-            std::vector<uint8_t>* tCidBytes = bitsetToVector(tupleHeader, offset, 32);
-            UnmarshalInt32_t(&t_cid, tCidBytes);
-            delete tCidBytes;
-            
-            std::vector<uint8_t>* tInfomaskBytes = bitsetToVector(tupleHeader, offset, 32);
-            UnmarshalInt32_t(&t_infomask, tInfomaskBytes);
-            delete tInfomaskBytes;
-            
-            std::vector<uint8_t>* tHoffBytes = bitsetToVector(tupleHeader, offset, 16);
-            UnmarshalInt16_t(&t_hoff, tHoffBytes);
-            delete tHoffBytes;
-            
-            std::vector<uint8_t>* nullBitmapBytes = bitsetToVector(tupleHeader, offset, 1);
-            UnmarshalBool(&null_bitmap, nullBitmapBytes);
-            delete nullBitmapBytes;
-            
-            std::vector<uint8_t>* optionalOidBytes = bitsetToVector(tupleHeader, offset, 64);
-            UnmarshalInt64_t(&optional_oid, optionalOidBytes);
-            delete optionalOidBytes;
-        }
-
-    private:
-        std::vector<uint8_t>* bitsetToVector(const std::bitset<280>& bitset, size_t& offset, int bits) {
-            std::vector<uint8_t>* result = new std::vector<uint8_t>();
-            
-            int bytes = (bits + 7) / 8; 
-            result->resize(bytes);
-            
-            for (int byte = 0; byte < bytes && offset < 280; ++byte) {
-                uint8_t value = 0;
-                for (int bit = 0; bit < 8 && offset < 280 && bits > 0; ++bit, --bits) {
-                    if (bitset.test(offset)) {
-                        value |= (1 << bit);
-                    }
-                    offset++;
-                }
-                (*result)[byte] = value;
+        void unmarshallHeaderTuple(const std::vector<uint8_t>& tupleHeader) {
+            if (tupleHeader.size() < 35) {
+                t_xmin = 0;
+                t_xmax = 0;
+                t_cid = 0;
+                t_infomask = 0;
+                t_hoff = 0;
+                null_bitmap = false;
+                optional_oid = 0;
+                return;
             }
             
-            return result;
+            std::vector<uint8_t> txMinVec(tupleHeader.begin(), tupleHeader.begin() + 8);        // int64_t = 8 bytes
+            std::vector<uint8_t> txMaxVec(tupleHeader.begin() + 8, tupleHeader.begin() + 16);  // int64_t = 8 bytes
+            std::vector<uint8_t> tCidVec(tupleHeader.begin() + 16, tupleHeader.begin() + 20);  // int32_t = 4 bytes
+            std::vector<uint8_t> tInfomaskVec(tupleHeader.begin() + 20, tupleHeader.begin() + 24); // int32_t = 4 bytes
+            std::vector<uint8_t> tHoffVec(tupleHeader.begin() + 24, tupleHeader.begin() + 26);     // int16_t = 2 bytes
+            std::vector<uint8_t> nullBitmapVec(tupleHeader.begin() + 26, tupleHeader.begin() + 27); // bool = 1 byte
+            std::vector<uint8_t> optionalOidVec(tupleHeader.begin() + 27, tupleHeader.begin() + 35); // int64_t = 8 bytes
+
+
+            UnmarshalInt64_t(&t_xmin, &txMinVec);
+            UnmarshalInt64_t(&t_xmax, &txMaxVec);
+            UnmarshalInt32_t(&t_cid, &tCidVec);
+            UnmarshalInt32_t(&t_infomask, &tInfomaskVec);
+            UnmarshalInt16_t(&t_hoff, &tHoffVec);
+            UnmarshalBool(&null_bitmap, &nullBitmapVec);
+            UnmarshalInt64_t(&optional_oid, &optionalOidVec);
         }
 };
 
