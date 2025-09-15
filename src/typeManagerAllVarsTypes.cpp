@@ -12,6 +12,7 @@ const int16_t blockHeaderIndetification = 4;
 const int16_t tableHeaderIndetification = 7;
 const int16_t bitMapIndetification = 2;
 const int16_t dataIndetification = 3;
+const int16_t tupleIndetification = 8;
 
 int16_t getTypeId(const allVars& value) {
     if (std::holds_alternative<int32_t>(value)) {

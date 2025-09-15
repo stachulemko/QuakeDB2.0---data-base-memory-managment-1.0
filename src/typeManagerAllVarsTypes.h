@@ -14,6 +14,7 @@ extern const int16_t tableHeaderIndetification;
 extern const int16_t blockHeaderIndetification;
 extern const int16_t bitMapIndetification;
 extern const int16_t dataIndetification;
+extern const int16_t tupleIndetification;
 
 using allVars = std::variant<int32_t, int64_t, std::string>;
 

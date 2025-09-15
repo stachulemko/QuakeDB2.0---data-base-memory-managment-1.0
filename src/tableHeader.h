@@ -37,6 +37,22 @@ class tableHeader{
 
         ~tableHeader();
 
+        void setData(int32_t oid, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights, int32_t freeSpace, int32_t unitSize){
+            this->oid = oid;
+            this->contain_toast = contain_toast;
+            this->numberOfColumns = numberOfColumns;
+            this->owner = owner;
+            this->pg_namespace = pg_namespace;
+            this->pg_constraint = pg_constraint;
+            this->rights = rights;
+            this->freeSpace = freeSpace;
+            this->unitSize = unitSize;
+        }
+
+        std::vector<uint8_t> marshallTableHeaderWithData(){
+            return marshallTableHeader(oid,contain_toast,numberOfColumns,owner,pg_namespace,pg_constraint,rights,freeSpace,unitSize);
+        }
+
         std::vector<uint8_t> marshallTableHeader(int32_t oid, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights, int32_t freeSpace, int32_t unitSize);
 
         void unmarshallTableHeader(const std::vector<uint8_t>& data);
