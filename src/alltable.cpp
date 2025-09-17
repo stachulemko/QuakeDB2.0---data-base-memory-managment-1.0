@@ -1,0 +1,39 @@
+#include "alltable.h"
+
+
+
+allTable::allTable(int32_t freeSpace, int32_t unitSize){
+            this->freeSpace = freeSpace;
+            this->unitSize = unitSize;
+        }
+
+allTable::~allTable(){
+
+}
+
+std::vector<uint8_t> allTable::marshallAllTable(){
+    std::vector<uint8_t> result;
+    std::vector<uint8_t> tableBytes = header.marshallTableHeaderWithData();
+    result.insert(result.end(),tableBytes.begin(),tableBytes.end());
+    for (int i=0;i<tuples.size();i++){
+        std::vector<uint8_t> tupleBytes = tuples[i].marshallTupleWithData();
+        result.insert(result.end(), tupleBytes.begin(), tupleBytes.end());
+    }
+    return result;
+}
+
+void allTable::unmarshallAllTable(const std::vector<uint8_t>& data){
+    std::vector<uint8_t> headerBytes;
+    headerBytes.insert(headerBytes.end(),data.begin(),data.begin()+39);
+    header.unmarshallTableHeader(headerBytes);
+    //std::vector<uint8_t> tuplesBytes;
+    //tuplesBytes.insert(tuplesBytes.end(),data.begin()+39,data.end());
+    for (int i=39;i<data.size();i+=blockSize){
+        std::vector<uint8_t>block8kbBytes;
+        block8kbBytes.insert(block8kbBytes.end(),data.begin()+i,data.begin()+i+blockSize);
+        block8kb block8kbObj(freeSpace,unitSize);
+        block8kbObj.unmarshallBlock8kb(block8kbBytes);
+        tuples.push_back(block8kbObj);
+    }
+    //tuples.unmarshallTuple(tuplesBytes);
+}

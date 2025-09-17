@@ -8,7 +8,7 @@ const int16_t int64_tIndetification = 6;
 const int16_t stringIndetification = 5;
 
 const int16_t rowIndetification = 1;
-const int16_t blockHeaderIndetification = 4;
+const int16_t allBlockIndetification = 4;
 const int16_t tableHeaderIndetification = 7;
 const int16_t bitMapIndetification = 2;
 const int16_t dataIndetification = 3;

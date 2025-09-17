@@ -28,8 +28,17 @@ class DataNullBitMapTuple{
         
         void unmarshallDataNullBitMapTuple(std::vector<uint8_t> inputData);
 
+        void marshallDataNullBitMapTupleWithData(){
+            marshallDataNullBitMapTuple(bitMap,dataValues);
+        }
+
         std::vector<uint8_t> marshallDataNullBitMapTuple(std::vector<bool>bitMap,std::vector<allVars>data);
         
+        void setData(std::vector<bool>bitMap,std::vector<allVars>dataValues ){
+            this->bitMap = bitMap;
+            this->dataValues = dataValues;
+        }
+
         std::vector<bool> getBitMap() const { return bitMap; }
         std::vector<allVars> getData() const { return dataValues; }
 };

@@ -34,10 +34,22 @@ class blockHeader{
 
         ~blockHeader();
 
+        std::vector<uint8_t> marshallBlockHeaderWithData(){
+            return marshallBlockHeader(nextblock,blockIndetification,pd_lsn,pd_checksum,pd_flags,contain_toast);
+        }
+
         std::vector<uint8_t> marshallBlockHeader(int32_t nextblock, int32_t blockIndetification, int32_t pd_lsn, int16_t pd_checksum, int16_t pd_flags, int8_t contain_toast);
 
         void unmarshallBlockHeader(const std::vector<uint8_t>& data);
 
+        void setData(int32_t nextblock, int32_t blockIndetification, int32_t pd_lsn, int16_t pd_checksum, int16_t pd_flags, int8_t contain_toast){
+            this->nextblock = nextblock;
+            this->blockIndetification = blockIndetification;
+            this->pd_lsn = pd_lsn;
+            this->pd_checksum = pd_checksum;
+            this->pd_flags = pd_flags;
+            this->contain_toast = contain_toast;
+        }
         // getters
 
         int32_t getNextblock() const { return nextblock; }
