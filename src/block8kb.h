@@ -8,7 +8,7 @@
 #include "typesDataConverter.h"
 #include "typeManagerAllVarsTypes.h"
 
-
+const int32_t blockSize = 8192 ;
 
 class block8kb{
     private:
@@ -18,7 +18,7 @@ class block8kb{
 
         int32_t freeSpace = 0 ;
         int32_t unitSize = 0 ;
-        int32_t blockSize = 8192 ;
+        
 
 
     public:
@@ -35,6 +35,11 @@ class block8kb{
         //void setDataBlock(const std::vector<uint8_t>& data) { dataBlock = data; }
 
         void setData(blockHeader& header , std::vector<tuple>& tuples);
+
+        void addData(tuple& tupleObj){
+            tuples.push_back(tupleObj);
+            
+        }
 
 };
 #endif

@@ -9,7 +9,7 @@ HeaderTuple::HeaderTuple() {
             t_hoff = 0;
             null_bitmap = false;
             optional_oid = 0;
-        }
+}
         
 HeaderTuple::HeaderTuple(int64_t xmin, int64_t xmax, int32_t cid, int32_t infomask, 
             int16_t hoff, bool bitmap, int64_t oid) 

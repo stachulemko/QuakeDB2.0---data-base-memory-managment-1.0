@@ -13,13 +13,12 @@ ___________________________________
 -----------------------------------
 -----------------------------------
 |         data block 8kb          |
-|types with allow Null            |   - 
-|pd_lsn - for wall indetification |   -
-|pd_checksum - control sum        |   -
-|pd_flags - state flag            |   -
-|pd_lower - free space start      |   -
-|pd_upper - free space end        |   -      
-|contain toast                    |
+|pd_lsn - for wall indetification |   -  int32_t
+|pd_checksum - control sum        |   -  int16_t
+|pd_flags - state flag            |   -  int16_t
+|pd_lower - free space start      |   -  int32_t 
+|pd_upper - free space end        |   -  int32_t 
+|contain toast                    |   -  int8_t 
 ----------------------------------
 -------------------------- row ----------------------------------
 +-----------------------+

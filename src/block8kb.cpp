@@ -27,11 +27,13 @@ std::vector<uint8_t> block8kb::marshallBlock8kb(){
     for (int i=0;i<zeroNums;i++){
         result.push_back(00000000);
     }
+    delete blockBytes;
     //blockBytes.insert(blockBytes.begin(), headerBytes.begin(), headerBytes.end());
     return result;
 }
 
 void block8kb::unmarshallBlock8kb(const std::vector<uint8_t>& data){
+    if(data.size()!= blockSize) return;
     std::vector<uint8_t>typeBytes ;
     typeBytes.insert(typeBytes.end(),data.begin(),data.begin()+2);
     int16_t blockType =0 ;

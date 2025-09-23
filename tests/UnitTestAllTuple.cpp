@@ -514,3 +514,469 @@ TEST(TupleTest, UnmarshallSizeJustOver39Bytes) {
         EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
     }
 }
+
+
+
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+//-----------------------------------------
+
+
+
+
+TEST(TupleTest, MarshallUnmarshallDataIntegrity) {
+    tuple tpl1;
+    tuple tpl2;
+    
+    std::vector<bool> bitMap = {true, false, true, false};
+    std::vector<allVars> data = {allVars(42), allVars(84L), allVars(std::string("test")), allVars(126)};
+    
+    // Marshall w pierwszym obiekcie
+    std::vector<uint8_t> marshalled = tpl1.marshallTuple(1000, 2000, 3000, 4000, 5000, true, 6000, bitMap, data);
+    
+    EXPECT_FALSE(marshalled.empty());
+    EXPECT_GE(marshalled.size(), 39);
+    
+    // Unmarshall w drugim obiekcie
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+    
+    // Sprawdź czy wszystkie dane zostały poprawnie przeniesione
+    EXPECT_EQ(tpl2.getTxMin(), 1000);
+    EXPECT_EQ(tpl2.getTxMax(), 2000);
+    EXPECT_EQ(tpl2.getTCid(), 3000);
+    EXPECT_EQ(tpl2.getTInfomask(), 4000);
+    EXPECT_EQ(tpl2.getTHoff(), 5000);
+    EXPECT_TRUE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getOptionalOid(), 6000);
+    
+    EXPECT_EQ(tpl2.getBitMap().size(), 4);
+    EXPECT_TRUE(tpl2.getBitMap()[0]);
+    EXPECT_FALSE(tpl2.getBitMap()[1]);
+    EXPECT_TRUE(tpl2.getBitMap()[2]);
+    EXPECT_FALSE(tpl2.getBitMap()[3]);
+    
+    EXPECT_EQ(tpl2.getData().size(), 4);
+}
+
+TEST(TupleTest, MarshallUnmarshallNegativeValues) {
+    tuple tpl1;
+    tuple tpl2;
+    
+    std::vector<bool> bitMap = {false, true, false};
+    std::vector<allVars> data = {allVars(-100), allVars(-200L), allVars(-300)};
+    
+    std::vector<uint8_t> marshalled = tpl1.marshallTuple(-1000, -2000, -3000, -4000, -5000, false, -6000, bitMap, data);
+    
+    EXPECT_FALSE(marshalled.empty());
+    
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+    
+    EXPECT_EQ(tpl2.getTxMin(), -1000);
+    EXPECT_EQ(tpl2.getTxMax(), -2000);
+    EXPECT_EQ(tpl2.getTCid(), -3000);
+    EXPECT_EQ(tpl2.getTInfomask(), -4000);
+    EXPECT_EQ(tpl2.getTHoff(), -5000);
+    EXPECT_FALSE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getOptionalOid(), -6000);
+    
+    EXPECT_EQ(tpl2.getBitMap().size(), 3);
+    EXPECT_FALSE(tpl2.getBitMap()[0]);
+    EXPECT_TRUE(tpl2.getBitMap()[1]);
+    EXPECT_FALSE(tpl2.getBitMap()[2]);
+    
+    EXPECT_EQ(tpl2.getData().size(), 3);
+}
+
+TEST(TupleTest, MarshallUnmarshallMaxValues) {
+    tuple tpl1;
+    tuple tpl2;
+    
+    std::vector<bool> bitMap = {true, true, true};
+    std::vector<allVars> data = {
+        allVars(std::numeric_limits<int>::max()),
+        allVars(std::numeric_limits<long>::max()),
+        allVars(std::string("max_test"))
+    };
+    
+    std::vector<uint8_t> marshalled = tpl1.marshallTuple(
+        std::numeric_limits<int64_t>::max(),
+        std::numeric_limits<int64_t>::max(),
+        std::numeric_limits<int32_t>::max(),
+        std::numeric_limits<int32_t>::max(),
+        std::numeric_limits<int16_t>::max(),
+        true,
+        std::numeric_limits<int64_t>::max(),
+        bitMap,
+        data
+    );
+    
+    EXPECT_FALSE(marshalled.empty());
+    
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+    
+    EXPECT_EQ(tpl2.getTxMin(), std::numeric_limits<int64_t>::max());
+    EXPECT_EQ(tpl2.getTxMax(), std::numeric_limits<int64_t>::max());
+    EXPECT_EQ(tpl2.getTCid(), std::numeric_limits<int32_t>::max());
+    EXPECT_EQ(tpl2.getTInfomask(), std::numeric_limits<int32_t>::max());
+    EXPECT_EQ(tpl2.getTHoff(), std::numeric_limits<int16_t>::max());
+    EXPECT_TRUE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getOptionalOid(), std::numeric_limits<int64_t>::max());
+    
+    EXPECT_EQ(tpl2.getBitMap().size(), 3);
+    EXPECT_EQ(tpl2.getData().size(), 3);
+}
+
+TEST(TupleTest, MarshallUnmarshallMinValues) {
+    tuple tpl1;
+    tuple tpl2;
+    
+    std::vector<bool> bitMap = {false, false, false};
+    std::vector<allVars> data = {
+        allVars(std::numeric_limits<int>::min()),
+        allVars(std::numeric_limits<long>::min()),
+        allVars(std::string("min_test"))
+    };
+    
+    std::vector<uint8_t> marshalled = tpl1.marshallTuple(
+        std::numeric_limits<int64_t>::min(),
+        std::numeric_limits<int64_t>::min(),
+        std::numeric_limits<int32_t>::min(),
+        std::numeric_limits<int32_t>::min(),
+        std::numeric_limits<int16_t>::min(),
+        false,
+        std::numeric_limits<int64_t>::min(),
+        bitMap,
+        data
+    );
+    
+    EXPECT_FALSE(marshalled.empty());
+    
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+    
+    EXPECT_EQ(tpl2.getTxMin(), std::numeric_limits<int64_t>::min());
+    EXPECT_EQ(tpl2.getTxMax(), std::numeric_limits<int64_t>::min());
+    EXPECT_EQ(tpl2.getTCid(), std::numeric_limits<int32_t>::min());
+    EXPECT_EQ(tpl2.getTInfomask(), std::numeric_limits<int32_t>::min());
+    EXPECT_EQ(tpl2.getTHoff(), std::numeric_limits<int16_t>::min());
+    EXPECT_FALSE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getOptionalOid(), std::numeric_limits<int64_t>::min());
+    
+    EXPECT_EQ(tpl2.getBitMap().size(), 3);
+    EXPECT_EQ(tpl2.getData().size(), 3);
+}
+
+TEST(TupleTest, MarshallUnmarshallEmptyData) {
+    tuple tpl1;
+    tuple tpl2;
+    
+    std::vector<bool> emptyBitMap;
+    std::vector<allVars> emptyData;
+    
+    std::vector<uint8_t> marshalled = tpl1.marshallTuple(100, 200, 300, 400, 500, false, 600, emptyBitMap, emptyData);
+    
+    EXPECT_FALSE(marshalled.empty());
+    
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+    
+    EXPECT_EQ(tpl2.getTxMin(), 100);
+    EXPECT_EQ(tpl2.getTxMax(), 200);
+    EXPECT_EQ(tpl2.getTCid(), 300);
+    EXPECT_EQ(tpl2.getTInfomask(), 400);
+    EXPECT_EQ(tpl2.getTHoff(), 500);
+    EXPECT_FALSE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getOptionalOid(), 600);
+    
+    EXPECT_TRUE(tpl2.getBitMap().empty());
+    EXPECT_TRUE(tpl2.getData().empty());
+}
+
+TEST(TupleTest, MarshallUnmarshallLargeDataSet) {
+    tuple tpl1;
+    tuple tpl2;
+    
+    std::vector<bool> bitMap;
+    std::vector<allVars> data;
+    
+    for (int i = 0; i < 20; i++) {
+        bitMap.push_back(i % 2 == 0);
+        if (i % 3 == 0) {
+            data.push_back(allVars(i * 100));
+        } else if (i % 3 == 1) {
+            data.push_back(allVars(static_cast<long>(i * 1000)));
+        } else {
+            data.push_back(allVars(std::string("item_" + std::to_string(i))));
+        }
+    }
+    
+    std::vector<uint8_t> marshalled = tpl1.marshallTuple(10000, 20000, 30000, 40000, 1000, true, 60000, bitMap, data);
+    
+    EXPECT_FALSE(marshalled.empty());
+    
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+    
+    EXPECT_EQ(tpl2.getTxMin(), 10000);
+    EXPECT_EQ(tpl2.getTxMax(), 20000);
+    EXPECT_EQ(tpl2.getTCid(), 30000);
+    EXPECT_EQ(tpl2.getTInfomask(), 40000);
+    EXPECT_EQ(tpl2.getTHoff(), 1000);
+    EXPECT_TRUE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getOptionalOid(), 60000);
+    
+    EXPECT_EQ(tpl2.getBitMap().size(), 20);
+    EXPECT_EQ(tpl2.getData().size(), 20);
+    
+    for (int i = 0; i < 20; i++) {
+        EXPECT_EQ(tpl2.getBitMap()[i], i % 2 == 0) << "BitMap mismatch at index " << i;
+    }
+}
+
+TEST(TupleTest, MarshallUnmarshallStringData) {
+    tuple tpl1;
+    tuple tpl2;
+    
+    std::vector<bool> bitMap = {true, true, true, true, true};
+    std::vector<allVars> data = {
+        allVars(std::string("")),
+        allVars(std::string("a")),
+        allVars(std::string("Hello World!")),
+        allVars(std::string("Special chars: !@#$%^&*()")),
+        allVars(std::string("Very long string with lots of characters"))
+    };
+    
+    std::vector<uint8_t> marshalled = tpl1.marshallTuple(7000, 8000, 9000, 10000, 11000, true, 12000, bitMap, data);
+    
+    EXPECT_FALSE(marshalled.empty());
+    
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+    
+    EXPECT_EQ(tpl2.getTxMin(), 7000);
+    EXPECT_EQ(tpl2.getTxMax(), 8000);
+    EXPECT_EQ(tpl2.getTCid(), 9000);
+    EXPECT_EQ(tpl2.getTInfomask(), 10000);
+    EXPECT_EQ(tpl2.getTHoff(), 11000);
+    EXPECT_TRUE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getOptionalOid(), 12000);
+    
+    EXPECT_EQ(tpl2.getBitMap().size(), 5);
+    EXPECT_EQ(tpl2.getData().size(), 5);
+    
+    for (int i = 0; i < 5; i++) {
+        EXPECT_TRUE(tpl2.getBitMap()[i]) << "BitMap should be true at index " << i;
+    }
+}
+
+TEST(TupleTest, MarshallUnmarshallZeroValues) {
+    tuple tpl1;
+    tuple tpl2;
+    
+    std::vector<bool> bitMap = {false, false, false};
+    std::vector<allVars> data = {allVars(0), allVars(0L), allVars(std::string(""))};
+    
+    std::vector<uint8_t> marshalled = tpl1.marshallTuple(0, 0, 0, 0, 0, false, 0, bitMap, data);
+    
+    EXPECT_FALSE(marshalled.empty());
+    
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+    
+    EXPECT_EQ(tpl2.getTxMin(), 0);
+    EXPECT_EQ(tpl2.getTxMax(), 0);
+    EXPECT_EQ(tpl2.getTCid(), 0);
+    EXPECT_EQ(tpl2.getTInfomask(), 0);
+    EXPECT_EQ(tpl2.getTHoff(), 0);
+    EXPECT_FALSE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getOptionalOid(), 0);
+    
+    EXPECT_EQ(tpl2.getBitMap().size(), 3);
+    EXPECT_EQ(tpl2.getData().size(), 3);
+    
+    for (int i = 0; i < 3; i++) {
+        EXPECT_FALSE(tpl2.getBitMap()[i]) << "BitMap should be false at index " << i;
+    }
+}
+
+TEST(TupleTest, MarshallUnmarshallMultipleRoundTrips) {
+    tuple tpl1;
+    tuple tpl2;
+    tuple tpl3;
+    
+    std::vector<bool> bitMap = {true, false, true};
+    std::vector<allVars> data = {allVars(123), allVars(456L), allVars(std::string("roundtrip"))};
+    
+    // Pierwszy round trip: tpl1 -> marshall -> tpl2 -> unmarshall
+    std::vector<uint8_t> marshalled1 = tpl1.marshallTuple(1000, 2000, 3000, 4000, 5000, true, 6000, bitMap, data);
+    
+    EXPECT_FALSE(marshalled1.empty());
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled1));
+    
+    // Sprawdź dane w tpl2
+    EXPECT_EQ(tpl2.getTxMin(), 1000);
+    EXPECT_EQ(tpl2.getTxMax(), 2000);
+    EXPECT_EQ(tpl2.getTCid(), 3000);
+    EXPECT_TRUE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getBitMap().size(), 3);
+    EXPECT_EQ(tpl2.getData().size(), 3);
+    
+    // Drugi round trip: tpl2 -> marshallTupleWithData -> tpl3 -> unmarshall
+    std::vector<uint8_t> marshalled2 = tpl2.marshallTupleWithData();
+    
+    EXPECT_FALSE(marshalled2.empty());
+    EXPECT_NO_THROW(tpl3.unmarshallTuple(marshalled2));
+    
+    // Sprawdź czy dane zostały zachowane w tpl3
+    EXPECT_EQ(tpl3.getTxMin(), 1000);
+    EXPECT_EQ(tpl3.getTxMax(), 2000);
+    EXPECT_EQ(tpl3.getTCid(), 3000);
+    EXPECT_EQ(tpl3.getTInfomask(), 4000);
+    EXPECT_EQ(tpl3.getTHoff(), 5000);
+    EXPECT_TRUE(tpl3.getNullBitmap());
+    EXPECT_EQ(tpl3.getOptionalOid(), 6000);
+    
+    EXPECT_EQ(tpl3.getBitMap().size(), 3);
+    EXPECT_EQ(tpl3.getData().size(), 3);
+    
+    EXPECT_TRUE(tpl3.getBitMap()[0]);
+    EXPECT_FALSE(tpl3.getBitMap()[1]);
+    EXPECT_TRUE(tpl3.getBitMap()[2]);
+}
+
+TEST(TupleTest, MarshallUnmarshallConsecutiveObjects) {
+    std::vector<tuple> tuples(10);
+    
+    std::vector<bool> bitMap = {true, false};
+    std::vector<allVars> data = {allVars(42), allVars(std::string("consecutive"))};
+    
+    // Marshall w pierwszym obiekcie
+    std::vector<uint8_t> marshalled = tuples[0].marshallTuple(999, 888, 777, 666, 555, true, 444, bitMap, data);
+    
+    EXPECT_FALSE(marshalled.empty());
+    
+    // Unmarshall w pozostałych obiektach
+    for (int i = 1; i < 10; i++) {
+        EXPECT_NO_THROW(tuples[i].unmarshallTuple(marshalled));
+        
+        EXPECT_EQ(tuples[i].getTxMin(), 999);
+        EXPECT_EQ(tuples[i].getTxMax(), 888);
+        EXPECT_EQ(tuples[i].getTCid(), 777);
+        EXPECT_EQ(tuples[i].getTInfomask(), 666);
+        EXPECT_EQ(tuples[i].getTHoff(), 555);
+        EXPECT_TRUE(tuples[i].getNullBitmap());
+        EXPECT_EQ(tuples[i].getOptionalOid(), 444);
+        
+        EXPECT_EQ(tuples[i].getBitMap().size(), 2);
+        EXPECT_EQ(tuples[i].getData().size(), 2);
+        
+        EXPECT_TRUE(tuples[i].getBitMap()[0]);
+        EXPECT_FALSE(tuples[i].getBitMap()[1]);
+    }
+}
+
+TEST(TupleTest, MarshallUnmarshallComplexDataTypes) {
+    tuple tpl1;
+    tuple tpl2;
+    
+    std::vector<bool> bitMap = {true, false, true, false, true, false};
+    std::vector<allVars> data = {
+        allVars(std::numeric_limits<int>::max()),
+        allVars(std::numeric_limits<long>::min()),
+        allVars(std::string("complex_test_string_with_many_characters")),
+        allVars(0),
+        allVars(-999999L),
+        allVars(std::string(""))
+    };
+    
+    std::vector<uint8_t> marshalled = tpl1.marshallTuple(
+        0x123456789ABCDEFLL,
+        -0x123456789ABCDEFLL,
+        0x12345678,
+        -0x12345678,
+        0x1234,
+        true,
+        0xFEDCBA9876543210LL,
+        bitMap,
+        data
+    );
+    
+    EXPECT_FALSE(marshalled.empty());
+    
+    EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+    
+    EXPECT_EQ(tpl2.getTxMin(), 0x123456789ABCDEFLL);
+    EXPECT_EQ(tpl2.getTxMax(), -0x123456789ABCDEFLL);
+    EXPECT_EQ(tpl2.getTCid(), 0x12345678);
+    EXPECT_EQ(tpl2.getTInfomask(), -0x12345678);
+    EXPECT_EQ(tpl2.getTHoff(), 0x1234);
+    EXPECT_TRUE(tpl2.getNullBitmap());
+    EXPECT_EQ(tpl2.getOptionalOid(), 0xFEDCBA9876543210LL);
+    
+    EXPECT_EQ(tpl2.getBitMap().size(), 6);
+    EXPECT_EQ(tpl2.getData().size(), 6);
+    
+    for (int i = 0; i < 6; i++) {
+        EXPECT_EQ(tpl2.getBitMap()[i], i % 2 == 0) << "BitMap mismatch at index " << i;
+    }
+}
+
+TEST(TupleTest, MarshallUnmarshallPerformanceStress) {
+    const int iterations = 20;
+    
+    for (int iter = 0; iter < iterations; iter++) {
+        tuple tpl1;
+        tuple tpl2;
+        
+        std::vector<bool> bitMap;
+        std::vector<allVars> data;
+        
+        for (int i = 0; i < 5; i++) {
+            bitMap.push_back(i % 2 == 0);
+            data.push_back(allVars(iter * 100 + i));
+        }
+        
+        std::vector<uint8_t> marshalled = tpl1.marshallTuple(
+            iter * 1000,
+            iter * 1000 + 1,
+            iter * 1000 + 2,
+            iter * 1000 + 3,
+            iter * 1000 + 4,
+            iter % 2 == 0,
+            iter * 1000 + 5,
+            bitMap,
+            data
+        );
+        
+        EXPECT_FALSE(marshalled.empty());
+        
+        EXPECT_NO_THROW(tpl2.unmarshallTuple(marshalled));
+        
+        EXPECT_EQ(tpl2.getTxMin(), iter * 1000);
+        EXPECT_EQ(tpl2.getTxMax(), iter * 1000 + 1);
+        EXPECT_EQ(tpl2.getTCid(), iter * 1000 + 2);
+        EXPECT_EQ(tpl2.getTInfomask(), iter * 1000 + 3);
+        EXPECT_EQ(tpl2.getTHoff(), iter * 1000 + 4);
+        EXPECT_EQ(tpl2.getNullBitmap(), iter % 2 == 0);
+        EXPECT_EQ(tpl2.getOptionalOid(), iter * 1000 + 5);
+        
+        EXPECT_EQ(tpl2.getBitMap().size(), 5);
+        EXPECT_EQ(tpl2.getData().size(), 5);
+    }
+}

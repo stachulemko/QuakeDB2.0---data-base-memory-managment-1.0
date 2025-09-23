@@ -17,9 +17,7 @@ class tuple {
 
         ~tuple();
 
-        std::vector<uint8_t> marshallTupleWithData(){
-            return marshallTuple(header.getTxMin(),header.getTxMax(),header.getTCid(),header.getTInfomask(),header.getTHoff(),header.getNullBitmap(),header.getOptionalOid(),dataNullBitMap.getBitMap(),dataNullBitMap.getData());
-        }
+        std::vector<uint8_t> marshallTupleWithData();
 
         std::vector<uint8_t> marshallTuple(int64_t xmin, int64_t xmax, int32_t cid, int32_t infomask, int16_t hoff, bool bitmap, int64_t oid, std::vector<bool>bitMap,std::vector<allVars>data);
 
@@ -37,7 +35,7 @@ class tuple {
             header.setData(xmin,xmax,cid,infomask,hoff,bitmap,oid);
             dataNullBitMap.setData(bitMap,dataValues);
         }
-        
+
         std::vector<bool> getBitMap() const { return dataNullBitMap.getBitMap(); }
         std::vector<allVars> getData() const { return dataNullBitMap.getData(); }
 

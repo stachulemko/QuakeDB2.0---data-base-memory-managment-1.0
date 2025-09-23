@@ -14,6 +14,7 @@ std::vector<uint8_t> tuple::marshallTuple(int64_t xmin, int64_t xmax, int32_t ci
     result.insert(result.end(),typeBin->begin(),typeBin->end());
     result.insert(result.end(),hederBin.begin(),hederBin.end());
     result.insert(result.end(),dataBin.begin(),dataBin.end());
+    delete typeBin;
     return result;
 }
 void tuple::unmarshallTuple(const std::vector<uint8_t>& data) {
@@ -26,10 +27,14 @@ void tuple::unmarshallTuple(const std::vector<uint8_t>& data) {
     UnmarshalInt16_t(&type,&typeBytes);
     if(type == tupleIndetification){
         std::vector<uint8_t>headerBytes;
-        headerBytes.insert(headerBytes.end(),data.begin()+2,data.begin()+39);
+        headerBytes.insert(headerBytes.end(),data.begin()+2,data.begin()+37);
         header.unmarshallHeaderTuple(headerBytes);
         std::vector<uint8_t>dataBytes;
-        dataBytes.insert(dataBytes.end(),data.begin()+39,data.end());
+        dataBytes.insert(dataBytes.end(),data.begin()+37,data.end());
         dataNullBitMap.unmarshallDataNullBitMapTuple(dataBytes);
     }
+}
+
+std::vector<uint8_t> tuple::marshallTupleWithData(){
+    return marshallTuple(header.getTxMin(),header.getTxMax(),header.getTCid(),header.getTInfomask(),header.getTHoff(),header.getNullBitmap(),header.getOptionalOid(),dataNullBitMap.getBitMap(),dataNullBitMap.getData());
 }
