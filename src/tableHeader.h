@@ -20,6 +20,7 @@ ___________________________________
 |free space                       |   - optional with large number of updates
 -----------------------------------
 */
+const int32_t sizeTableHeader = 33; 
 
 class tableHeader{
     private:
@@ -67,6 +68,18 @@ class tableHeader{
         int8_t getRights()  { return rights; }
         int32_t getFreeSpace()  { return freeSpace; }
         int32_t getUnitSize()  { return unitSize; }
+
+        tableHeader(int32_t oid,int8_t contain_toast,int32_t numberOfColumns,int64_t owner,int8_t pg_namespace,int32_t pg_constraint,int8_t rights,int32_t freeSpace, int32_t unitSize){
+            this->oid = oid;
+            this->contain_toast = contain_toast;
+            this->numberOfColumns = numberOfColumns;
+            this->owner = owner;
+            this->pg_namespace = pg_namespace;
+            this->pg_constraint = pg_constraint;
+            this->rights = rights;
+            this->freeSpace = freeSpace;
+            this->unitSize = unitSize;
+        }
 
 
 };
