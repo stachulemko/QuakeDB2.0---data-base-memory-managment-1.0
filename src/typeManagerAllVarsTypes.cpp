@@ -2,18 +2,19 @@
 #include "typesDataConverter.h"
 #include <iostream>
 
-
-const int16_t int32_tIndetification = 4;
-const int16_t int64_tIndetification = 6;  
-const int16_t stringIndetification = 5;
-
 const int16_t rowIndetification = 1;
-const int16_t allBlockIndetification = 4;
-const int16_t tableHeaderIndetification = 7;
 const int16_t bitMapIndetification = 2;
 const int16_t dataIndetification = 3;
+const int16_t int32_tIndetification = 4;
+const int16_t stringIndetification = 5;
+const int16_t int64_tIndetification = 6;  
+const int16_t tableHeaderIndetification = 7;
 const int16_t tupleIndetification = 8;
-
+const int16_t dataNullTableHeader = 9;
+const int16_t columnNamesTableHeader = 10;
+const int16_t allBlockIndetification = 11;
+const int16_t byteUnit = 12;
+const int16_t typeTableIndetification = 13;
 int16_t getTypeId(const allVars& value) {
     if (std::holds_alternative<int32_t>(value)) {
         return int32_tIndetification;

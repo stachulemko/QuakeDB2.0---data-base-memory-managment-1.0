@@ -17,6 +17,12 @@ class tuple {
 
         ~tuple();
 
+        int32_t getSize(){
+            int32_t tmpSize = header.getSize();
+            tmpSize += dataNullBitMap.getSize();
+            return tmpSize;
+        }
+
         std::vector<uint8_t> marshallTupleWithData();
 
         std::vector<uint8_t> marshallTuple(int64_t xmin, int64_t xmax, int32_t cid, int32_t infomask, int16_t hoff, bool bitmap, int64_t oid, std::vector<bool>bitMap,std::vector<allVars>data);
@@ -38,6 +44,11 @@ class tuple {
 
         std::vector<bool> getBitMap() const { return dataNullBitMap.getBitMap(); }
         std::vector<allVars> getData() const { return dataNullBitMap.getData(); }
+
+        void showData(){
+            header.showData();
+            dataNullBitMap.showData();
+        }
 
         
 };

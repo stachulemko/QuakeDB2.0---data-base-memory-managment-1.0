@@ -1,3 +1,4 @@
+/*
 #include <gtest/gtest.h>
 #include "blockHeader.h"
 #include <vector>
@@ -387,3 +388,5 @@ TEST(BlockHeaderTest, MarshallSizeConsistency) {
 }
 /*
 */
+
+

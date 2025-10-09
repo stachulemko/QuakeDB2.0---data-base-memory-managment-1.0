@@ -35,10 +35,10 @@ class HeaderTuple {
         int16_t t_hoff;
         bool null_bitmap;
         int64_t optional_oid;
-
         int32_t size = 39;
         
     public:
+
         HeaderTuple() ;
         
         HeaderTuple(int64_t xmin, int64_t xmax, int32_t cid, int32_t infomask, int16_t hoff, bool bitmap, int64_t oid) ;
@@ -80,6 +80,16 @@ class HeaderTuple {
             this->optional_oid = oid;
         }
         int32_t getSize() const { return size; }
+
+        void showData(){
+            std::cout<<"t_xmin: "<<t_xmin<<std::endl;
+            std::cout<<"t_xmax: "<<t_xmax<<std::endl;
+            std::cout<<"t_cid: "<<t_cid<<std::endl;
+            std::cout<<"t_infomask: "<<t_infomask<<std::endl;
+            std::cout<<"t_hoff: "<<t_hoff<<std::endl;
+            std::cout<<"null_bitmap: "<<null_bitmap<<std::endl;
+            std::cout<<"optional_oid: "<<optional_oid<<std::endl;
+        }
 };
 
 #endif

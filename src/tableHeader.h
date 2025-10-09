@@ -6,21 +6,7 @@
 #include "typesDataConverter.h"
 #include "typeManagerAllVarsTypes.h"
 
-/*
-___________________________________
-|             table               | 
-|types with allow Null            |   - size = number of raws * 4 bit + number of raws * 1 bit
-|oid indetification               |   - 32 bit
-|contain toast                    |   - 1 bit
-|column names                     |   - ~
-|owner                            |   - int64_t
-|pg_namespace shema_status(public)|   - int8_t
-|pg_constraint - keys information |   - int32_t
-|rights                           |   - int8_t
-|free space                       |   - optional with large number of updates
------------------------------------
-*/
-const int32_t sizeTableHeader = 33; 
+const int32_t tableHeaderSize = 8192;
 
 class tableHeader{
     private:
@@ -32,13 +18,16 @@ class tableHeader{
         int32_t pg_constraint=0;
         int8_t rights=0;
         int32_t freeSpace=0;
-        int32_t unitSize=0;
+        std::vector<int8_t> types={};
+        std::vector<int8_t> typesWithAllowNull={}; 
+        std::vector<std::string> columnNames={};
+
     public:
         tableHeader();
 
         ~tableHeader();
 
-        void setData(int32_t oid, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights, int32_t freeSpace, int32_t unitSize){
+        void setData(int32_t oid, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights,int32_t freeSpace, std::vector<int8_t> types , std::vector<int8_t> typesWithAllowNull , std::vector<std::string> columnNames) {
             this->oid = oid;
             this->contain_toast = contain_toast;
             this->numberOfColumns = numberOfColumns;
@@ -47,14 +36,16 @@ class tableHeader{
             this->pg_constraint = pg_constraint;
             this->rights = rights;
             this->freeSpace = freeSpace;
-            this->unitSize = unitSize;
+            this->types = types;   
+            this->typesWithAllowNull = typesWithAllowNull;
+            this->columnNames = columnNames;
         }
 
         std::vector<uint8_t> marshallTableHeaderWithData(){
-            return marshallTableHeader(oid,contain_toast,numberOfColumns,owner,pg_namespace,pg_constraint,rights,freeSpace,unitSize);
+            return marshallTableHeader(oid,contain_toast,numberOfColumns,owner,pg_namespace,pg_constraint,rights,freeSpace,types,typesWithAllowNull,columnNames);
         }
 
-        std::vector<uint8_t> marshallTableHeader(int32_t oid, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights, int32_t freeSpace, int32_t unitSize);
+        std::vector<uint8_t> marshallTableHeader(int32_t oid,int8_t contain_toast,int32_t numberOfColumns,int64_t owner,int8_t pg_namespace,int32_t pg_constraint,int8_t rights,int32_t freeSpace,std::vector<int8_t> types ,std::vector<int8_t> typesWithAllowNull , std::vector<std::string> columnNames);
 
         void unmarshallTableHeader(const std::vector<uint8_t>& data);
 
@@ -66,10 +57,14 @@ class tableHeader{
         int8_t getPgNamespace()  { return pg_namespace; }
         int32_t getPgConstraint()  { return pg_constraint; }
         int8_t getRights()  { return rights; }
-        int32_t getFreeSpace()  { return freeSpace; }
-        int32_t getUnitSize()  { return unitSize; }
+        //int32_t getFreeSpaceTableHeader()  { return freeSpaceTableHeader; }
 
-        tableHeader(int32_t oid,int8_t contain_toast,int32_t numberOfColumns,int64_t owner,int8_t pg_namespace,int32_t pg_constraint,int8_t rights,int32_t freeSpace, int32_t unitSize){
+        int32_t getFreeSpace()  { return freeSpace; }
+        std::vector<int8_t> getTypesWithAllowNull()  { return typesWithAllowNull; }
+        std::vector<std::string> getColumnNames()  { return columnNames; }
+        
+
+        tableHeader(int32_t oid,int8_t contain_toast,int32_t numberOfColumns,int64_t owner,int8_t pg_namespace,int32_t pg_constraint,int8_t rights,int32_t freeSpace,std::vector<int8_t> types,std::vector<int8_t> typesWithAllowNull , std::vector<std::string> columnNames){
             this->oid = oid;
             this->contain_toast = contain_toast;
             this->numberOfColumns = numberOfColumns;
@@ -77,8 +72,42 @@ class tableHeader{
             this->pg_namespace = pg_namespace;
             this->pg_constraint = pg_constraint;
             this->rights = rights;
+            //this->freeSpaceTableHeader = freeSpaceTableHeader;
             this->freeSpace = freeSpace;
-            this->unitSize = unitSize;
+            this->types = types;
+            this->typesWithAllowNull = typesWithAllowNull;
+            this->columnNames = columnNames;
+
+        }
+
+        void showData(){
+            std::cout<<"oid: "<<oid<<std::endl;
+            std::cout<<"contain_toast: "<<(int)contain_toast<<std::endl;
+            std::cout<<"numberOfColumns: "<<numberOfColumns<<std::endl;
+            std::cout<<"owner: "<<owner<<std::endl;
+            std::cout<<"pg_namespace: "<<(int)pg_namespace<<std::endl;
+            std::cout<<"pg_constraint: "<<pg_constraint<<std::endl;
+            std::cout<<"rights: "<<(int)rights<<std::endl;
+            //std::cout<<"freeSpaceTableHeader: "<<freeSpaceTableHeader<<std::endl;
+            std::cout<<"freeSpace: "<<freeSpace<<std::endl;
+
+            std::cout<<"types: ";
+            for (int i=0;i<types.size();i++){
+                std::cout<<(int)types[i]<<" ";
+            }
+            std::cout<<std::endl;
+
+            std::cout<<"typesWithAllowNull: ";
+            for (int i=0;i<typesWithAllowNull.size();i++){
+                std::cout<<(int)typesWithAllowNull[i]<<" ";
+            }
+            std::cout<<std::endl;
+
+            std::cout<<"columnNames: ";
+            for (int i=0;i<columnNames.size();i++){
+                std::cout<<columnNames[i]<<" ";
+            }
+            std::cout<<std::endl;
         }
 
 

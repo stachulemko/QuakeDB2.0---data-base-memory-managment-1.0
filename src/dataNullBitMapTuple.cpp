@@ -76,7 +76,7 @@ void DataNullBitMapTuple::unmarshallDataNullBitMapTuple(std::vector<uint8_t> inp
                     allVars val = unmarshallBytes(values,valType); 
                     dataValues.push_back(val); 
                     tmpSize+=4+valSize;
-                    tmpValueSizeVal+=valSize;
+                    tmpValueSizeVal+=valSize+6;
                     //std::cout<<"tmpValueSizeVal: "<<tmpValueSizeVal<<std::endl;
                 }
                 sizeAll = tmpSize;
@@ -116,6 +116,7 @@ std::vector<uint8_t> DataNullBitMapTuple::marshallDataNullBitMapTuple(std::vecto
     int32_t sizeData=0;
     for (int i=0;i<data.size();i++){
         sizeData+=getSizeByVal(data[i]);
+        sizeData+=6;
     }
 
     std::vector<uint8_t>* sizeDataBytes = marshalInt32_t(sizeData);

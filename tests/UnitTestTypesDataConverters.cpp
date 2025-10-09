@@ -302,19 +302,13 @@ TEST(TypesDataConverterTest, StringRoundTrip) {
 TEST(TypesDataConverterTest, StringUnmarshalNullPtr) {
     std::string result = "original";
     std::string original = result;
-    //UnmarshalString(&result, nullptr);
-    //EXPECT_EQ(returnCheckPoint,true);
 
-    // Sprawdź czy się nie zmieniło lub zostało wyczyszczone
-    // (zależy od implementacji)
 }
 
 TEST(TypesDataConverterTest, StringUnmarshalEmptyVector) {
     std::vector<uint8_t>* emptyVector = new std::vector<uint8_t>();
     std::string result = "original";
-    //UnmarshalString(&result, emptyVector);
-    //EXPECT_EQ(returnCheckPoint,true);
-    // Powinno być puste lub niezmienione
+
     
     delete emptyVector;
 }
@@ -324,7 +318,7 @@ TEST(TypesDataConverterTest, StringUnmarshalEmptyVector) {
 // ================================
 
 TEST(TypesDataConverterTest, AllTypesZeroValues) {
-    // Bool
+
     bool boolZero = false;
     std::vector<uint8_t>* marshaledBool = marshalBool(boolZero);
     bool unmarshaledBool;
@@ -332,7 +326,6 @@ TEST(TypesDataConverterTest, AllTypesZeroValues) {
     EXPECT_EQ(boolZero, unmarshaledBool);
     delete marshaledBool;
     
-    // Int16
     int16_t int16Zero = 0;
     std::vector<uint8_t>* marshaledInt16 = marshalInt16_t(int16Zero);
     int16_t unmarshaledInt16;
@@ -340,7 +333,6 @@ TEST(TypesDataConverterTest, AllTypesZeroValues) {
     EXPECT_EQ(int16Zero, unmarshaledInt16);
     delete marshaledInt16;
     
-    // Int32
     int32_t int32Zero = 0;
     std::vector<uint8_t>* marshaledInt32 = marshalInt32_t(int32Zero);
     int32_t unmarshaledInt32;
@@ -348,7 +340,6 @@ TEST(TypesDataConverterTest, AllTypesZeroValues) {
     EXPECT_EQ(int32Zero, unmarshaledInt32);
     delete marshaledInt32;
     
-    // Int64
     int64_t int64Zero = 0;
     std::vector<uint8_t>* marshaledInt64 = marshalInt64_t(int64Zero);
     int64_t unmarshaledInt64;
@@ -358,20 +349,17 @@ TEST(TypesDataConverterTest, AllTypesZeroValues) {
 }
 
 TEST(TypesDataConverterTest, ShowBytesFunction) {
-    // Test czy funkcja showBytes nie powoduje crashu
     std::vector<uint8_t> testBytes = {0x01, 0x02, 0x03, 0xFF};
     
-    // Przekieruj cout żeby nie zaśmiecać output testów
+
     std::streambuf* orig = std::cout.rdbuf();
     std::ostringstream buffer;
     std::cout.rdbuf(buffer.rdbuf());
     
     EXPECT_NO_THROW(showBytes(testBytes));
     
-    // Przywróć cout
     std::cout.rdbuf(orig);
     
-    // Sprawdź czy coś zostało wypisane
     std::string output = buffer.str();
     EXPECT_FALSE(output.empty());
 }

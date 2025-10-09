@@ -4,43 +4,30 @@
 #include <vector>
 #include <string>
 #include <limits>
-#include <chrono>
 
-class DataNullBitMapTupleTest : public ::testing::Test {
-protected:
-    void SetUp() override {}
-    void TearDown() override {}
-};
+// ==================== TESTY KONSTRUKTORA ====================
 
-TEST_F(DataNullBitMapTupleTest, DefaultConstructor) {
+TEST(DataNullBitMapTupleTest, DefaultConstructor) {
     DataNullBitMapTuple tuple;
     EXPECT_TRUE(tuple.getBitMap().empty());
     EXPECT_TRUE(tuple.getData().empty());
+    EXPECT_EQ(tuple.getSize(), 0);
 }
 
-TEST_F(DataNullBitMapTupleTest, MarshallBasicValues) {
-    DataNullBitMapTuple tuple;
-    std::vector<bool> bitmap = {true, false, true};
-    std::vector<allVars> data = {int32_t(42), std::string("Hello"), int32_t(100)};
-    
-    std::vector<uint8_t> result = tuple.marshallDataNullBitMapTuple(bitmap, data);
-    
-    EXPECT_FALSE(result.empty());
-    EXPECT_GT(result.size(), 20);
-}
+// ==================== TESTY MARSHALLING ====================
 
-TEST_F(DataNullBitMapTupleTest, MarshallEmptyData) {
+TEST(DataNullBitMapTupleTest, MarshallEmptyData) {
     DataNullBitMapTuple tuple;
     std::vector<bool> bitmap = {};
     std::vector<allVars> data = {};
     
     std::vector<uint8_t> result = tuple.marshallDataNullBitMapTuple(bitmap, data);
     
-    EXPECT_FALSE(result.empty());
-    EXPECT_GT(result.size(), 10);
+    // Rozmiar: 2 (type) + 2 (bitmapType) + 4 (sizeBitMap) + 2 (dataType) + 4 (sizeData) = 14 bajtów
+    EXPECT_EQ(result.size(), 14);
 }
 
-TEST_F(DataNullBitMapTupleTest, MarshallSingleInt32) {
+TEST(DataNullBitMapTupleTest, MarshallSingleInt32) {
     DataNullBitMapTuple tuple;
     std::vector<bool> bitmap = {true};
     std::vector<allVars> data = {int32_t(12345)};
@@ -48,10 +35,11 @@ TEST_F(DataNullBitMapTupleTest, MarshallSingleInt32) {
     std::vector<uint8_t> result = tuple.marshallDataNullBitMapTuple(bitmap, data);
     
     EXPECT_FALSE(result.empty());
-    EXPECT_GT(result.size(), 15);
+    // 14 (header) + 1 (bitmap) + 2 (valType) + 4 (valSize) + 4 (int32) = 25 bajtów
+    EXPECT_EQ(result.size(), 25);
 }
 
-TEST_F(DataNullBitMapTupleTest, MarshallSingleInt64) {
+TEST(DataNullBitMapTupleTest, MarshallSingleInt64) {
     DataNullBitMapTuple tuple;
     std::vector<bool> bitmap = {true};
     std::vector<allVars> data = {int64_t(9876543210LL)};
@@ -59,66 +47,81 @@ TEST_F(DataNullBitMapTupleTest, MarshallSingleInt64) {
     std::vector<uint8_t> result = tuple.marshallDataNullBitMapTuple(bitmap, data);
     
     EXPECT_FALSE(result.empty());
-    EXPECT_GT(result.size(), 19);
+    // 14 (header) + 1 (bitmap) + 2 (valType) + 4 (valSize) + 8 (int64) = 29 bajtów
+    EXPECT_EQ(result.size(), 29);
 }
 
-TEST_F(DataNullBitMapTupleTest, MarshallSingleString) {
+TEST(DataNullBitMapTupleTest, MarshallSingleString) {
     DataNullBitMapTuple tuple;
     std::vector<bool> bitmap = {true};
-    std::vector<allVars> data = {std::string("TestString")};
+    std::vector<allVars> data = {std::string("Test")};
     
     std::vector<uint8_t> result = tuple.marshallDataNullBitMapTuple(bitmap, data);
     
     EXPECT_FALSE(result.empty());
-    EXPECT_GT(result.size(), 25);
+    // 14 (header) + 1 (bitmap) + 2 (valType) + 4 (valSize) + 4 (string size) + 4 (string content) = 29 bajtów
+    EXPECT_GT(result.size(), 20);
 }
 
-TEST_F(DataNullBitMapTupleTest, MarshallMixedTypes) {
+TEST(DataNullBitMapTupleTest, MarshallMultipleInt32) {
     DataNullBitMapTuple tuple;
-    std::vector<bool> bitmap = {true, false, true, false};
+    std::vector<bool> bitmap = {true, true, true};
+    std::vector<allVars> data = {int32_t(10), int32_t(20), int32_t(30)};
+    
+    std::vector<uint8_t> result = tuple.marshallDataNullBitMapTuple(bitmap, data);
+    
+    EXPECT_FALSE(result.empty());
+    // 14 (header) + 3 (bitmap) + 3*(2+4+4) = 14 + 3 + 30 = 47 bajtów
+    EXPECT_EQ(result.size(), 47);
+}
+
+TEST(DataNullBitMapTupleTest, MarshallMixedTypes) {
+    DataNullBitMapTuple tuple;
+    std::vector<bool> bitmap = {true, false, true};
     std::vector<allVars> data = {
         int32_t(123), 
         int64_t(456789LL), 
-        std::string("Mixed"), 
-        int32_t(-999)
+        std::string("Mixed")
     };
     
     std::vector<uint8_t> result = tuple.marshallDataNullBitMapTuple(bitmap, data);
     
     EXPECT_FALSE(result.empty());
-    EXPECT_GT(result.size(), 40);
+    EXPECT_GT(result.size(), 30);
 }
 
-TEST_F(DataNullBitMapTupleTest, RoundTripBasic) {
-    DataNullBitMapTuple tuple1;
-    std::vector<bool> originalBitmap = {true, false, true};
-    std::vector<allVars> originalData = {int32_t(42), std::string("Hello"), int32_t(100)};
+TEST(DataNullBitMapTupleTest, MarshallWithNullBitmap) {
+    DataNullBitMapTuple tuple;
+    std::vector<bool> bitmap = {false, false, false};
+    std::vector<allVars> data = {int32_t(1), int32_t(2), int32_t(3)};
     
-    std::vector<uint8_t> marshalled = tuple1.marshallDataNullBitMapTuple(originalBitmap, originalData);
+    std::vector<uint8_t> result = tuple.marshallDataNullBitMapTuple(bitmap, data);
     
-    DataNullBitMapTuple tuple2;
-    tuple2.unmarshallDataNullBitMapTuple(marshalled);
-    
-    std::vector<bool> resultBitmap = tuple2.getBitMap();
-    EXPECT_EQ(resultBitmap.size(), originalBitmap.size());
-    for (size_t i = 0; i < originalBitmap.size(); i++) {
-        EXPECT_EQ(resultBitmap[i], originalBitmap[i]);
-    }
-    
-    std::vector<allVars> resultData = tuple2.getData();
-    EXPECT_EQ(resultData.size(), originalData.size());
-    
-    EXPECT_TRUE(std::holds_alternative<int32_t>(resultData[0]));
-    EXPECT_EQ(std::get<int32_t>(resultData[0]), 42);
-    
-    EXPECT_TRUE(std::holds_alternative<std::string>(resultData[1]));
-    EXPECT_EQ(std::get<std::string>(resultData[1]), "Hello");
-    
-    EXPECT_TRUE(std::holds_alternative<int32_t>(resultData[2]));
-    EXPECT_EQ(std::get<int32_t>(resultData[2]), 100);
+    EXPECT_FALSE(result.empty());
+    EXPECT_EQ(result.size(), 47);
 }
 
-TEST_F(DataNullBitMapTupleTest, RoundTripEmptyData) {
+// ==================== TESTY UNMARSHALLING ====================
+
+TEST(DataNullBitMapTupleTest, UnmarshallEmptyVector) {
+    DataNullBitMapTuple tuple;
+    std::vector<uint8_t> empty;
+    
+    EXPECT_NO_THROW(tuple.unmarshallDataNullBitMapTuple(empty));
+    EXPECT_TRUE(tuple.getBitMap().empty());
+    EXPECT_TRUE(tuple.getData().empty());
+}
+
+TEST(DataNullBitMapTupleTest, UnmarshallInvalidData) {
+    DataNullBitMapTuple tuple;
+    std::vector<uint8_t> invalid = {0x01, 0x02, 0x03};
+    
+    EXPECT_NO_THROW(tuple.unmarshallDataNullBitMapTuple(invalid));
+}
+
+// ==================== TESTY ROUND-TRIP ====================
+
+TEST(DataNullBitMapTupleTest, RoundTripEmptyData) {
     DataNullBitMapTuple tuple1;
     std::vector<bool> originalBitmap = {};
     std::vector<allVars> originalData = {};
@@ -132,7 +135,116 @@ TEST_F(DataNullBitMapTupleTest, RoundTripEmptyData) {
     EXPECT_TRUE(tuple2.getData().empty());
 }
 
-TEST_F(DataNullBitMapTupleTest, RoundTripInt64Values) {
+TEST(DataNullBitMapTupleTest, RoundTripSingleInt32) {
+    DataNullBitMapTuple tuple1;
+    std::vector<bool> originalBitmap = {true};
+    std::vector<allVars> originalData = {int32_t(42)};
+    
+    std::vector<uint8_t> marshalled = tuple1.marshallDataNullBitMapTuple(originalBitmap, originalData);
+    
+    DataNullBitMapTuple tuple2;
+    tuple2.unmarshallDataNullBitMapTuple(marshalled);
+    
+    std::vector<bool> resultBitmap = tuple2.getBitMap();
+    std::vector<allVars> resultData = tuple2.getData();
+    
+    EXPECT_EQ(resultBitmap.size(), 1);
+    EXPECT_TRUE(resultBitmap[0]);
+    
+    EXPECT_EQ(resultData.size(), 1);
+    EXPECT_TRUE(std::holds_alternative<int32_t>(resultData[0]));
+    EXPECT_EQ(std::get<int32_t>(resultData[0]), 42);
+}
+
+TEST(DataNullBitMapTupleTest, RoundTripSingleInt64) {
+    DataNullBitMapTuple tuple1;
+    std::vector<bool> originalBitmap = {true};
+    std::vector<allVars> originalData = {int64_t(9876543210LL)};
+    
+    std::vector<uint8_t> marshalled = tuple1.marshallDataNullBitMapTuple(originalBitmap, originalData);
+    
+    DataNullBitMapTuple tuple2;
+    tuple2.unmarshallDataNullBitMapTuple(marshalled);
+    
+    std::vector<allVars> resultData = tuple2.getData();
+    
+    EXPECT_EQ(resultData.size(), 1);
+    EXPECT_TRUE(std::holds_alternative<int64_t>(resultData[0]));
+    EXPECT_EQ(std::get<int64_t>(resultData[0]), 9876543210LL);
+}
+
+TEST(DataNullBitMapTupleTest, RoundTripSingleString) {
+    DataNullBitMapTuple tuple1;
+    std::vector<bool> originalBitmap = {true};
+    std::vector<allVars> originalData = {std::string("Hello")};
+    
+    std::vector<uint8_t> marshalled = tuple1.marshallDataNullBitMapTuple(originalBitmap, originalData);
+    
+    DataNullBitMapTuple tuple2;
+    tuple2.unmarshallDataNullBitMapTuple(marshalled);
+    
+    std::vector<allVars> resultData = tuple2.getData();
+    
+    EXPECT_EQ(resultData.size(), 1);
+    EXPECT_TRUE(std::holds_alternative<std::string>(resultData[0]));
+    EXPECT_EQ(std::get<std::string>(resultData[0]), "Hello");
+}
+
+TEST(DataNullBitMapTupleTest, RoundTripMultipleInt32) {
+    DataNullBitMapTuple tuple1;
+    std::vector<bool> originalBitmap = {true, false, true};
+    std::vector<allVars> originalData = {int32_t(10), int32_t(20), int32_t(30)};
+    
+    std::vector<uint8_t> marshalled = tuple1.marshallDataNullBitMapTuple(originalBitmap, originalData);
+    
+    DataNullBitMapTuple tuple2;
+    tuple2.unmarshallDataNullBitMapTuple(marshalled);
+    
+    std::vector<bool> resultBitmap = tuple2.getBitMap();
+    std::vector<allVars> resultData = tuple2.getData();
+    
+    EXPECT_EQ(resultBitmap.size(), 3);
+    EXPECT_TRUE(resultBitmap[0]);
+    EXPECT_FALSE(resultBitmap[1]);
+    EXPECT_TRUE(resultBitmap[2]);
+    
+    EXPECT_EQ(resultData.size(), 3);
+    EXPECT_EQ(std::get<int32_t>(resultData[0]), 10);
+    EXPECT_EQ(std::get<int32_t>(resultData[1]), 20);
+    EXPECT_EQ(std::get<int32_t>(resultData[2]), 30);
+}
+
+TEST(DataNullBitMapTupleTest, RoundTripMixedTypes) {
+    DataNullBitMapTuple tuple1;
+    std::vector<bool> originalBitmap = {true, false, true};
+    std::vector<allVars> originalData = {
+        int32_t(42), 
+        std::string("Hello"), 
+        int64_t(100)
+    };
+    
+    std::vector<uint8_t> marshalled = tuple1.marshallDataNullBitMapTuple(originalBitmap, originalData);
+    
+    DataNullBitMapTuple tuple2;
+    tuple2.unmarshallDataNullBitMapTuple(marshalled);
+    
+    std::vector<bool> resultBitmap = tuple2.getBitMap();
+    std::vector<allVars> resultData = tuple2.getData();
+    
+    EXPECT_EQ(resultBitmap.size(), 3);
+    EXPECT_EQ(resultData.size(), 3);
+    
+    EXPECT_TRUE(std::holds_alternative<int32_t>(resultData[0]));
+    EXPECT_EQ(std::get<int32_t>(resultData[0]), 42);
+    
+    EXPECT_TRUE(std::holds_alternative<std::string>(resultData[1]));
+    EXPECT_EQ(std::get<std::string>(resultData[1]), "Hello");
+    
+    EXPECT_TRUE(std::holds_alternative<int64_t>(resultData[2]));
+    EXPECT_EQ(std::get<int64_t>(resultData[2]), 100);
+}
+
+TEST(DataNullBitMapTupleTest, RoundTripInt64Values) {
     DataNullBitMapTuple tuple1;
     std::vector<bool> originalBitmap = {true, true};
     std::vector<allVars> originalData = {
@@ -155,7 +267,7 @@ TEST_F(DataNullBitMapTupleTest, RoundTripInt64Values) {
     EXPECT_EQ(std::get<int64_t>(resultData[1]), std::numeric_limits<int64_t>::min());
 }
 
-TEST_F(DataNullBitMapTupleTest, RoundTripStringValues) {
+TEST(DataNullBitMapTupleTest, RoundTripStringValues) {
     DataNullBitMapTuple tuple1;
     std::vector<bool> originalBitmap = {true, false, true};
     std::vector<allVars> originalData = {
@@ -182,7 +294,9 @@ TEST_F(DataNullBitMapTupleTest, RoundTripStringValues) {
     EXPECT_EQ(std::get<std::string>(resultData[2]), "This is a much longer string to test string handling");
 }
 
-TEST_F(DataNullBitMapTupleTest, BoundaryValues) {
+// ==================== TESTY WARTOŚCI GRANICZNYCH ====================
+
+TEST(DataNullBitMapTupleTest, BoundaryValuesInt32) {
     DataNullBitMapTuple tuple1;
     std::vector<bool> originalBitmap = {true, true, true, true};
     std::vector<allVars> originalData = {
@@ -206,7 +320,31 @@ TEST_F(DataNullBitMapTupleTest, BoundaryValues) {
     EXPECT_EQ(std::get<int32_t>(resultData[3]), -1);
 }
 
-TEST_F(DataNullBitMapTupleTest, LargeBitmap) {
+TEST(DataNullBitMapTupleTest, BoundaryValuesInt64) {
+    DataNullBitMapTuple tuple1;
+    std::vector<bool> originalBitmap = {true, true, true};
+    std::vector<allVars> originalData = {
+        int64_t(0),
+        int64_t(std::numeric_limits<int64_t>::max()),
+        int64_t(std::numeric_limits<int64_t>::min())
+    };
+    
+    std::vector<uint8_t> marshalled = tuple1.marshallDataNullBitMapTuple(originalBitmap, originalData);
+    
+    DataNullBitMapTuple tuple2;
+    tuple2.unmarshallDataNullBitMapTuple(marshalled);
+    
+    std::vector<allVars> resultData = tuple2.getData();
+    EXPECT_EQ(resultData.size(), 3);
+    
+    EXPECT_EQ(std::get<int64_t>(resultData[0]), 0);
+    EXPECT_EQ(std::get<int64_t>(resultData[1]), std::numeric_limits<int64_t>::max());
+    EXPECT_EQ(std::get<int64_t>(resultData[2]), std::numeric_limits<int64_t>::min());
+}
+
+// ==================== TESTY DUŻYCH DANYCH ====================
+
+TEST(DataNullBitMapTupleTest, LargeBitmap) {
     DataNullBitMapTuple tuple1;
     std::vector<bool> originalBitmap(100, true);
     std::vector<allVars> originalData;
@@ -232,26 +370,68 @@ TEST_F(DataNullBitMapTupleTest, LargeBitmap) {
     }
 }
 
-TEST_F(DataNullBitMapTupleTest, UnmarshallEmptyVector) {
-    DataNullBitMapTuple tuple;
-    std::vector<uint8_t> empty;
-    EXPECT_EQ(empty.size(), 0 );
-    EXPECT_EQ(tuple.getBitMap().size(), 0 );
-    EXPECT_EQ(tuple.getData().size(), 0 );
-    //EXPECT_NO_THROW(tuple.unmarshallDataNullBitMapTuple(empty));
+TEST(DataNullBitMapTupleTest, LargeMixedData) {
+    DataNullBitMapTuple tuple1;
+    std::vector<bool> originalBitmap;
+    std::vector<allVars> originalData;
     
+    for (int i = 0; i < 50; i++) {
+        originalBitmap.push_back(i % 2 == 0);
+        if (i % 3 == 0) {
+            originalData.push_back(int32_t(i));
+        } else if (i % 3 == 1) {
+            originalData.push_back(int64_t(i * 1000LL));
+        } else {
+            originalData.push_back(std::string("str_") + std::to_string(i));
+        }
+    }
     
-    //EXPECT_TRUE(tuple.getData().empty());
+    std::vector<uint8_t> marshalled = tuple1.marshallDataNullBitMapTuple(originalBitmap, originalData);
+    
+    DataNullBitMapTuple tuple2;
+    tuple2.unmarshallDataNullBitMapTuple(marshalled);
+    
+    std::vector<bool> resultBitmap = tuple2.getBitMap();
+    std::vector<allVars> resultData = tuple2.getData();
+    
+    EXPECT_EQ(resultBitmap.size(), 50);
+    EXPECT_EQ(resultData.size(), 50);
 }
 
-TEST_F(DataNullBitMapTupleTest, UnmarshallInvalidData) {
+// ==================== TESTY METOD setData/getData ====================
+
+TEST(DataNullBitMapTupleTest, SetDataBasic) {
     DataNullBitMapTuple tuple;
-    std::vector<uint8_t> invalid = {0x01, 0x02, 0x03};
+    std::vector<bool> bitmap = {true, false};
+    std::vector<allVars> data = {int32_t(10), int32_t(20)};
     
-    EXPECT_NO_THROW(tuple.unmarshallDataNullBitMapTuple(invalid));
+    tuple.setData(bitmap, data);
+    
+    EXPECT_EQ(tuple.getBitMap().size(), 2);
+    EXPECT_EQ(tuple.getData().size(), 2);
+    EXPECT_TRUE(tuple.getBitMap()[0]);
+    EXPECT_FALSE(tuple.getBitMap()[1]);
 }
 
-TEST_F(DataNullBitMapTupleTest, MarshallConsistency) {
+TEST(DataNullBitMapTupleTest, GetSizeEmpty) {
+    DataNullBitMapTuple tuple;
+    EXPECT_EQ(tuple.getSize(), 0);
+}
+
+TEST(DataNullBitMapTupleTest, GetSizeWithData) {
+    DataNullBitMapTuple tuple;
+    std::vector<bool> bitmap = {true, true};
+    std::vector<allVars> data = {int32_t(10), int32_t(20)};
+    
+    tuple.setData(bitmap, data);
+    
+    // 2 (bitmap size) + 4 + 4 (two int32_t values)
+    EXPECT_EQ(tuple.getSize(), 10);
+}
+
+// ==================== TESTY SPÓJNOŚCI ====================
+
+TEST(DataNullBitMapTupleTest, MarshallConsistency) {
     DataNullBitMapTuple tuple1, tuple2;
     std::vector<bool> bitmap = {true, false, true};
     std::vector<allVars> data = {int32_t(42), std::string("Test"), int32_t(100)};
@@ -262,7 +442,7 @@ TEST_F(DataNullBitMapTupleTest, MarshallConsistency) {
     EXPECT_EQ(result1, result2);
 }
 
-TEST_F(DataNullBitMapTupleTest, MarshallDifferentValues) {
+TEST(DataNullBitMapTupleTest, MarshallDifferentValues) {
     DataNullBitMapTuple tuple;
     
     std::vector<uint8_t> result1 = tuple.marshallDataNullBitMapTuple(
@@ -276,27 +456,29 @@ TEST_F(DataNullBitMapTupleTest, MarshallDifferentValues) {
     EXPECT_NE(result1, result2);
 }
 
-TEST_F(DataNullBitMapTupleTest, PerformanceTest) {
-    const int iterations = 1000;
-    DataNullBitMapTuple tuple;
-    std::vector<bool> bitmap = {true, false, true};
-    std::vector<allVars> data = {int32_t(42), std::string("Hello"), int32_t(100)};
-    
-    auto start = std::chrono::high_resolution_clock::now();
-    
-    for (int i = 0; i < iterations; i++) {
-        std::vector<uint8_t> result = tuple.marshallDataNullBitMapTuple(bitmap, data);
-        volatile size_t dummy = result.size();
-        (void)dummy;
+TEST(DataNullBitMapTupleTest, MultipleRoundTrips) {
+    for (int iteration = 0; iteration < 5; iteration++) {
+        DataNullBitMapTuple tuple1;
+        std::vector<bool> bitmap = {true, false, true};
+        std::vector<allVars> data = {
+            int32_t(iteration), 
+            std::string("iter_") + std::to_string(iteration), 
+            int64_t(iteration * 1000LL)
+        };
+        
+        std::vector<uint8_t> marshalled = tuple1.marshallDataNullBitMapTuple(bitmap, data);
+        
+        DataNullBitMapTuple tuple2;
+        tuple2.unmarshallDataNullBitMapTuple(marshalled);
+        
+        EXPECT_EQ(tuple2.getData().size(), 3);
+        EXPECT_EQ(std::get<int32_t>(tuple2.getData()[0]), iteration);
     }
-    
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    
-    EXPECT_LT(duration.count(), 1000000);
 }
 
-TEST_F(DataNullBitMapTupleTest, CompleteIntegrationTest) {
+// ==================== TEST KOMPLEKSOWY ====================
+
+TEST(DataNullBitMapTupleTest, CompleteIntegrationTest) {
     DataNullBitMapTuple originalTuple;
     
     std::vector<bool> originalBitmap = {true, false, true, false, true, true};

@@ -1,13 +1,11 @@
 #include <gtest/gtest.h>
-#include "tableHeader.h"
 #include <vector>
-#include <limits>
-#include <chrono>
+#include <climits>
+#include "tableHeader.h"
 
 TEST(TableHeaderTest, DefaultConstructor) {
     tableHeader header;
     
-    // Sprawdź, czy konstruktor inicjalizuje pola
     EXPECT_EQ(header.getOid(), 0);
     EXPECT_EQ(header.getContainToast(), 0);
     EXPECT_EQ(header.getNumberOfColumns(), 0);
@@ -16,374 +14,485 @@ TEST(TableHeaderTest, DefaultConstructor) {
     EXPECT_EQ(header.getPgConstraint(), 0);
     EXPECT_EQ(header.getRights(), 0);
     EXPECT_EQ(header.getFreeSpace(), 0);
-    EXPECT_EQ(header.getUnitSize(), 0);
+    EXPECT_TRUE(header.getTypesWithAllowNull().empty());
+    EXPECT_TRUE(header.getColumnNames().empty());
 }
 
-TEST(TableHeaderTest, MarshallBasicValues) {
-    tableHeader header;
+TEST(TableHeaderTest, ParametricConstructorEmptyVectors) {
+    tableHeader header(42, 1, 0, 9999, 2, 555, 3, 2048, {}, {}, {});
     
-    std::vector<uint8_t> result = header.marshallTableHeader(
-        100,    // oid
-        1,      // contain_toast
-        5,      // numberOfColumns
-        12345,  // owner
-        2,      // pg_namespace
-        999,    // pg_constraint
-        3,      // rights
-        1024,   // freeSpace
-        256     // unitSize
-    );
-    
-    EXPECT_FALSE(result.empty());
-    // 2 (int16) + 4 (int32) + 1 (int8) + 4 (int32) + 8 (int64) + 1 (int8) + 4 (int32) + 1 (int8) + 4 (int32) + 4 (int32) = 33 bytes
-    EXPECT_EQ(result.size(), 33);
-}
-
-TEST(TableHeaderTest, MarshallZeroValues) {
-    tableHeader header;
-    
-    std::vector<uint8_t> result = header.marshallTableHeader(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    
-    EXPECT_FALSE(result.empty());
-    EXPECT_EQ(result.size(), 33);
-}
-
-TEST(TableHeaderTest, MarshallConsistency) {
-    tableHeader header1;
-    tableHeader header2;
-    
-    std::vector<uint8_t> result1 = header1.marshallTableHeader(42, 1, 10, 9999, 2, 555, 3, 512, 128);
-    std::vector<uint8_t> result2 = header2.marshallTableHeader(42, 1, 10, 9999, 2, 555, 3, 512, 128);
-    
-    EXPECT_EQ(result1, result2);
-    EXPECT_EQ(result1.size(), 33);
-}
-
-TEST(TableHeaderTest, MarshallDifferentValues) {
-    tableHeader header;
-    
-    std::vector<uint8_t> result1 = header.marshallTableHeader(100, 1, 5, 1000, 1, 200, 2, 256, 64);
-    std::vector<uint8_t> result2 = header.marshallTableHeader(200, 1, 5, 1000, 1, 200, 2, 256, 64);
-    
-    EXPECT_NE(result1, result2); // Różne wartości oid
-    EXPECT_EQ(result1.size(), result2.size());
-}
-
-TEST(TableHeaderTest, MarshallMaxValues) {
-    tableHeader header;
-    
-    std::vector<uint8_t> result = header.marshallTableHeader(
-        std::numeric_limits<int32_t>::max(),
-        std::numeric_limits<int8_t>::max(),
-        std::numeric_limits<int32_t>::max(),
-        std::numeric_limits<int64_t>::max(),
-        std::numeric_limits<int8_t>::max(),
-        std::numeric_limits<int32_t>::max(),
-        std::numeric_limits<int8_t>::max(),
-        std::numeric_limits<int32_t>::max(),
-        std::numeric_limits<int32_t>::max()
-    );
-    
-    EXPECT_FALSE(result.empty());
-    EXPECT_EQ(result.size(), 33);
-}
-
-TEST(TableHeaderTest, MarshallMinValues) {
-    tableHeader header;
-    
-    std::vector<uint8_t> result = header.marshallTableHeader(
-        std::numeric_limits<int32_t>::min(),
-        std::numeric_limits<int8_t>::min(),
-        std::numeric_limits<int32_t>::min(),
-        std::numeric_limits<int64_t>::min(),
-        std::numeric_limits<int8_t>::min(),
-        std::numeric_limits<int32_t>::min(),
-        std::numeric_limits<int8_t>::min(),
-        std::numeric_limits<int32_t>::min(),
-        std::numeric_limits<int32_t>::min()
-    );
-    
-    EXPECT_FALSE(result.empty());
-    EXPECT_EQ(result.size(), 33);
-}
-
-TEST(TableHeaderTest, MarshallNegativeValues) {
-    tableHeader header;
-    
-    std::vector<uint8_t> result = header.marshallTableHeader(-100, -1, -50, -9999, -2, -555, -3, -512, -128);
-    
-    EXPECT_FALSE(result.empty());
-    EXPECT_EQ(result.size(), 33);
-}
-
-TEST(TableHeaderTest, UnmarshallEmptyVector) {
-    tableHeader header;
-    std::vector<uint8_t> empty;
-    
-    EXPECT_NO_THROW(header.unmarshallTableHeader(empty));
-    
-    // Pola nie są przypisywane w unmarshall, więc pozostają 0
-    EXPECT_EQ(header.getOid(), 0);
-    EXPECT_EQ(header.getContainToast(), 0);
+    EXPECT_EQ(header.getOid(), 42);
+    EXPECT_EQ(header.getContainToast(), 1);
     EXPECT_EQ(header.getNumberOfColumns(), 0);
+    EXPECT_EQ(header.getOwner(), 9999);
+    EXPECT_EQ(header.getPgNamespace(), 2);
+    EXPECT_EQ(header.getPgConstraint(), 555);
+    EXPECT_EQ(header.getRights(), 3);
+    EXPECT_EQ(header.getFreeSpace(), 2048);
+    EXPECT_TRUE(header.getTypesWithAllowNull().empty());
+    EXPECT_TRUE(header.getColumnNames().empty());
 }
 
-TEST(TableHeaderTest, UnmarshallTooSmall) {
+TEST(TableHeaderTest, ParametricConstructorFullData) {
+    std::vector<int8_t> types = {1, 2, 3};
+    std::vector<int8_t> allowNull = {0, 1, 0};
+    std::vector<std::string> names = {"id", "name", "age"};
+    
+    tableHeader header(100, 1, 3, 5000, 1, 200, 7, 1024, types, allowNull, names);
+    
+    EXPECT_EQ(header.getOid(), 100);
+    EXPECT_EQ(header.getContainToast(), 1);
+    EXPECT_EQ(header.getNumberOfColumns(), 3);
+    EXPECT_EQ(header.getOwner(), 5000);
+    EXPECT_EQ(header.getPgNamespace(), 1);
+    EXPECT_EQ(header.getPgConstraint(), 200);
+    EXPECT_EQ(header.getRights(), 7);
+    EXPECT_EQ(header.getFreeSpace(), 1024);
+    
+    ASSERT_EQ(header.getTypesWithAllowNull().size(), 3);
+    EXPECT_EQ(header.getTypesWithAllowNull()[0], 0);
+    EXPECT_EQ(header.getTypesWithAllowNull()[1], 1);
+    EXPECT_EQ(header.getTypesWithAllowNull()[2], 0);
+    
+    ASSERT_EQ(header.getColumnNames().size(), 3);
+    EXPECT_EQ(header.getColumnNames()[0], "id");
+    EXPECT_EQ(header.getColumnNames()[1], "name");
+    EXPECT_EQ(header.getColumnNames()[2], "age");
+}
+
+TEST(TableHeaderTest, SetDataBasic) {
     tableHeader header;
-    std::vector<uint8_t> tooSmall(21, 0x42);
+    std::vector<int8_t> types = {1, 2};
+    std::vector<int8_t> allowNull = {1, 0};
+    std::vector<std::string> names = {"col1", "col2"};
     
-    EXPECT_NO_THROW(header.unmarshallTableHeader(tooSmall));
+    header.setData(50, 0, 2, 7777, 3, 888, 5, 512, types, allowNull, names);
     
-    // Pola nie są przypisywane w unmarshall, więc pozostają 0
-    EXPECT_EQ(header.getOid(), 0);
+    EXPECT_EQ(header.getOid(), 50);
     EXPECT_EQ(header.getContainToast(), 0);
-    EXPECT_EQ(header.getNumberOfColumns(), 0);
+    EXPECT_EQ(header.getNumberOfColumns(), 2);
+    EXPECT_EQ(header.getOwner(), 7777);
+    EXPECT_EQ(header.getPgNamespace(), 3);
+    EXPECT_EQ(header.getPgConstraint(), 888);
+    EXPECT_EQ(header.getRights(), 5);
+    EXPECT_EQ(header.getFreeSpace(), 512);
 }
 
-TEST(TableHeaderTest, UnmarshallMinimumSize) {
+TEST(TableHeaderTest, SetDataOverwrite) {
     tableHeader header;
+    std::vector<int8_t> types1 = {1};
+    std::vector<int8_t> allowNull1 = {0};
+    std::vector<std::string> names1 = {"old"};
     
-    // Tworzymy dane dla minimalnego rozmiaru (22 bajty)
-    std::vector<uint8_t> minimum(22, 0x00);
+    header.setData(10, 0, 1, 100, 0, 10, 1, 200, types1, allowNull1, names1);
+    EXPECT_EQ(header.getOid(), 10);
+    EXPECT_EQ(header.getColumnNames()[0], "old");
     
-    EXPECT_NO_THROW(header.unmarshallTableHeader(minimum));
+    std::vector<int8_t> types2 = {2, 3};
+    std::vector<int8_t> allowNull2 = {1, 1};
+    std::vector<std::string> names2 = {"new1", "new2"};
     
-    // Pola nie są przypisywane w unmarshall - tylko lokalne zmienne
+    header.setData(20, 1, 2, 200, 1, 20, 2, 400, types2, allowNull2, names2);
+    EXPECT_EQ(header.getOid(), 20);
+    EXPECT_EQ(header.getContainToast(), 1);
+    EXPECT_EQ(header.getNumberOfColumns(), 2);
+    ASSERT_EQ(header.getColumnNames().size(), 2);
+    EXPECT_EQ(header.getColumnNames()[0], "new1");
+    EXPECT_EQ(header.getColumnNames()[1], "new2");
 }
 
-TEST(TableHeaderTest, UnmarshallExactSize) {
+TEST(TableHeaderTest, MarshallUnmarshallBasic) {
     tableHeader header;
+    std::vector<int8_t> types = {1, 2, 3};
+    std::vector<int8_t> allowNull = {0, 1, 0};
+    std::vector<std::string> names = {"id", "name", "age"};
     
-    // Tworzymy dane dla dokładnego rozmiaru (33 bajty)
-    std::vector<uint8_t> exact(33, 0x00);
+    header.setData(42, 1, 3, 9999, 2, 555, 3, 2048, types, allowNull, names);
     
-    EXPECT_NO_THROW(header.unmarshallTableHeader(exact));
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    EXPECT_GT(data.size(), 0);
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getOid(), 42);
+    EXPECT_EQ(newHeader.getContainToast(), 1);
+    EXPECT_EQ(newHeader.getNumberOfColumns(), 3);
+    EXPECT_EQ(newHeader.getOwner(), 9999);
+    EXPECT_EQ(newHeader.getPgNamespace(), 2);
+    EXPECT_EQ(newHeader.getPgConstraint(), 555);
+    EXPECT_EQ(newHeader.getRights(), 3);
+    EXPECT_EQ(newHeader.getFreeSpace(), 2048);
+    
+    ASSERT_EQ(newHeader.getTypesWithAllowNull().size(), 3);
+    EXPECT_EQ(newHeader.getTypesWithAllowNull()[0], 0);
+    EXPECT_EQ(newHeader.getTypesWithAllowNull()[1], 1);
+    EXPECT_EQ(newHeader.getTypesWithAllowNull()[2], 0);
+    
+    ASSERT_EQ(newHeader.getColumnNames().size(), 3);
+    EXPECT_EQ(newHeader.getColumnNames()[0], "id");
+    EXPECT_EQ(newHeader.getColumnNames()[1], "name");
+    EXPECT_EQ(newHeader.getColumnNames()[2], "age");
 }
 
-TEST(TableHeaderTest, UnmarshallLargerSize) {
+TEST(TableHeaderTest, MarshallUnmarshallEmptyVectors) {
     tableHeader header;
+    header.setData(100, 0, 0, 5000, 0, 100, 0, 1024, {}, {}, {});
     
-    // Dane większe niż wymagane
-    std::vector<uint8_t> larger(50, 0x42);
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
     
-    EXPECT_NO_THROW(header.unmarshallTableHeader(larger));
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getOid(), 100);
+    EXPECT_EQ(newHeader.getContainToast(), 0);
+    EXPECT_EQ(newHeader.getNumberOfColumns(), 0);
+    EXPECT_TRUE(newHeader.getTypesWithAllowNull().empty());
+    EXPECT_TRUE(newHeader.getColumnNames().empty());
 }
 
-TEST(TableHeaderTest, MarshallUnmarshallRoundTrip) {
-    tableHeader header1;
-    tableHeader header2;
-    
-    // Marshall z konkretnymi wartościami
-    std::vector<uint8_t> marshalled = header1.marshallTableHeader(
-        12345,   // oid
-        1,       // contain_toast
-        10,      // numberOfColumns
-        9876543210LL, // owner
-        3,       // pg_namespace
-        555,     // pg_constraint
-        7,       // rights
-        2048,    // freeSpace
-        512      // unitSize
-    );
-    
-    EXPECT_EQ(marshalled.size(), 33);
-    
-    // Unmarshall (ale nie przypisuje do pól klasy)
-    EXPECT_NO_THROW(header2.unmarshallTableHeader(marshalled));
-    
-    // Pola pozostają bez zmian (unmarshall używa tylko lokalnych zmiennych)
-    EXPECT_EQ(header2.getOid(), 0);
-    EXPECT_EQ(header2.getContainToast(), 0);
-    EXPECT_EQ(header2.getNumberOfColumns(), 0);
-}
-
-TEST(TableHeaderTest, BoundaryDataSizes) {
+TEST(TableHeaderTest, MarshallUnmarshallLargeData) {
     tableHeader header;
-    
-    std::vector<size_t> testSizes = {0, 1, 21, 22, 30, 33, 35, 50, 100};
-    
-    for (size_t size : testSizes) {
-        std::vector<uint8_t> testData(size, 0x33);
-        
-        EXPECT_NO_THROW(header.unmarshallTableHeader(testData))
-            << "Failed with size: " << size;
+    std::vector<int8_t> types(100, 1);
+    std::vector<int8_t> allowNull(100, 0);
+    std::vector<std::string> names;
+    for (int i = 0; i < 100; i++) {
+        names.push_back("column_" + std::to_string(i));
     }
+    
+    header.setData(999, 1, 100, 123456, 5, 9999, 7, 4096, types, allowNull, names);
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getOid(), 999);
+    EXPECT_EQ(newHeader.getNumberOfColumns(), 100);
+    ASSERT_EQ(newHeader.getColumnNames().size(), 100);
+    EXPECT_EQ(newHeader.getColumnNames()[0], "column_0");
+    EXPECT_EQ(newHeader.getColumnNames()[99], "column_99");
 }
 
-TEST(TableHeaderTest, ConsecutiveOperations) {
+TEST(TableHeaderTest, MarshallUnmarshallSpecialCharacters) {
+    tableHeader header;
+    std::vector<int8_t> types = {1, 2};
+    std::vector<int8_t> allowNull = {1, 1};
+    std::vector<std::string> names = {"col_with_underscore", "col-with-dash"};
+    
+    header.setData(1, 0, 2, 100, 0, 10, 0, 200, types, allowNull, names);
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    ASSERT_EQ(newHeader.getColumnNames().size(), 2);
+    EXPECT_EQ(newHeader.getColumnNames()[0], "col_with_underscore");
+    EXPECT_EQ(newHeader.getColumnNames()[1], "col-with-dash");
+}
+
+TEST(TableHeaderTest, MarshallUnmarshallLongColumnNames) {
+    tableHeader header;
+    std::vector<int8_t> types = {1};
+    std::vector<int8_t> allowNull = {0};
+    std::string longName(1000, 'A');
+    std::vector<std::string> names = {longName};
+    
+    header.setData(1, 0, 1, 100, 0, 10, 0, 200, types, allowNull, names);
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    ASSERT_EQ(newHeader.getColumnNames().size(), 1);
+    EXPECT_EQ(newHeader.getColumnNames()[0].length(), 1000);
+    EXPECT_EQ(newHeader.getColumnNames()[0], longName);
+}
+
+TEST(TableHeaderTest, EdgeValuesInt32) {
+    tableHeader header;
+    header.setData(INT32_MAX, 0, INT32_MAX, 0, 0, INT32_MAX, 0, INT32_MAX, {}, {}, {});
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getOid(), INT32_MAX);
+    EXPECT_EQ(newHeader.getNumberOfColumns(), INT32_MAX);
+    EXPECT_EQ(newHeader.getPgConstraint(), INT32_MAX);
+    EXPECT_EQ(newHeader.getFreeSpace(), INT32_MAX);
+}
+
+TEST(TableHeaderTest, EdgeValuesInt32Negative) {
+    tableHeader header;
+    header.setData(INT32_MIN, 0, INT32_MIN, 0, 0, INT32_MIN, 0, INT32_MIN, {}, {}, {});
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getOid(), INT32_MIN);
+    EXPECT_EQ(newHeader.getNumberOfColumns(), INT32_MIN);
+    EXPECT_EQ(newHeader.getPgConstraint(), INT32_MIN);
+}
+
+TEST(TableHeaderTest, EdgeValuesInt8) {
+    tableHeader header;
+    header.setData(0, INT8_MAX, 0, 0, INT8_MAX, 0, INT8_MAX, 0, {}, {}, {});
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getContainToast(), INT8_MAX);
+    EXPECT_EQ(newHeader.getPgNamespace(), INT8_MAX);
+    EXPECT_EQ(newHeader.getRights(), INT8_MAX);
+}
+
+TEST(TableHeaderTest, EdgeValuesInt8Negative) {
+    tableHeader header;
+    header.setData(0, INT8_MIN, 0, 0, INT8_MIN, 0, INT8_MIN, 0, {}, {}, {});
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getContainToast(), INT8_MIN);
+    EXPECT_EQ(newHeader.getPgNamespace(), INT8_MIN);
+    EXPECT_EQ(newHeader.getRights(), INT8_MIN);
+}
+
+TEST(TableHeaderTest, EdgeValuesInt64) {
+    tableHeader header;
+    header.setData(0, 0, 0, INT64_MAX, 0, 0, 0, 0, {}, {}, {});
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getOwner(), INT64_MAX);
+}
+
+TEST(TableHeaderTest, EdgeValuesInt64Negative) {
+    tableHeader header;
+    header.setData(0, 0, 0, INT64_MIN, 0, 0, 0, 0, {}, {}, {});
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getOwner(), INT64_MIN);
+}
+
+TEST(TableHeaderTest, AllZeroValues) {
+    tableHeader header;
+    header.setData(0, 0, 0, 0, 0, 0, 0, 0, {}, {}, {});
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getOid(), 0);
+    EXPECT_EQ(newHeader.getContainToast(), 0);
+    EXPECT_EQ(newHeader.getNumberOfColumns(), 0);
+    EXPECT_EQ(newHeader.getOwner(), 0);
+    EXPECT_EQ(newHeader.getPgNamespace(), 0);
+    EXPECT_EQ(newHeader.getPgConstraint(), 0);
+    EXPECT_EQ(newHeader.getRights(), 0);
+    EXPECT_EQ(newHeader.getFreeSpace(), 0);
+}
+
+TEST(TableHeaderTest, UnmarshallEmptyData) {
+    tableHeader header;
+    header.setData(42, 1, 3, 9999, 2, 555, 3, 2048, {1, 2, 3}, {0, 1, 0}, {"id", "name", "age"});
+    
+    std::vector<uint8_t> emptyData;
+    header.unmarshallTableHeader(emptyData);
+    
+    EXPECT_EQ(header.getOid(), 42);
+    EXPECT_EQ(header.getContainToast(), 1);
+}
+
+TEST(TableHeaderTest, UnmarshallPartialData) {
+    tableHeader header;
+    std::vector<uint8_t> fullData = header.marshallTableHeader(
+        42, 1, 3, 9999, 2, 555, 3, 2048, {1, 2, 3}, {0, 1, 0}, {"id", "name", "age"}
+    );
+    
+    std::vector<uint8_t> partialData(fullData.begin(), fullData.begin() + 15);
+    
+    tableHeader newHeader;
+    EXPECT_NO_THROW(newHeader.unmarshallTableHeader(partialData));
+}
+
+TEST(TableHeaderTest, UnmarshallCorruptedData) {
+    tableHeader header;
+    std::vector<uint8_t> data = header.marshallTableHeader(
+        42, 1, 3, 9999, 2, 555, 3, 2048, {1, 2, 3}, {0, 1, 0}, {"id", "name", "age"}
+    );
+    
+    for (size_t i = 0; i < data.size(); i += 10) {
+        if (i < data.size()) {
+            data[i] = 0xFF;
+        }
+    }
+    
+    tableHeader newHeader;
+    EXPECT_NO_THROW(newHeader.unmarshallTableHeader(data));
+}
+
+TEST(TableHeaderTest, MismatchedVectorSizes) {
+    tableHeader header;
+    std::vector<int8_t> types = {1, 2, 3, 4, 5};
+    std::vector<int8_t> allowNull = {0, 1};
+    std::vector<std::string> names = {"a", "b", "c"};
+    
+    EXPECT_NO_THROW(header.setData(1, 0, 5, 100, 0, 10, 0, 200, types, allowNull, names));
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    EXPECT_NO_THROW(newHeader.unmarshallTableHeader(data));
+}
+
+TEST(TableHeaderTest, EmptyStringsInColumnNames) {
+    tableHeader header;
+    std::vector<int8_t> types = {1, 2, 3};
+    std::vector<int8_t> allowNull = {0, 1, 0};
+    std::vector<std::string> names = {"", "valid_name", ""};
+    
+    header.setData(1, 0, 3, 100, 0, 10, 0, 200, types, allowNull, names);
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    ASSERT_EQ(newHeader.getColumnNames().size(), 3);
+    EXPECT_EQ(newHeader.getColumnNames()[0], "");
+    EXPECT_EQ(newHeader.getColumnNames()[1], "valid_name");
+    EXPECT_EQ(newHeader.getColumnNames()[2], "");
+}
+
+TEST(TableHeaderTest, MultipleMarshallUnmarshall) {
     tableHeader header;
     
     for (int i = 0; i < 10; i++) {
-        std::vector<uint8_t> marshalled = header.marshallTableHeader(i, 1, 5, 1000+i, 2, 100+i, 3, 256, 64);
-        EXPECT_EQ(marshalled.size(), 33);
+        std::vector<int8_t> types = {static_cast<int8_t>(i)};
+        std::vector<int8_t> allowNull = {static_cast<int8_t>(i % 2)};
+        std::vector<std::string> names = {"col_" + std::to_string(i)};
         
-        EXPECT_NO_THROW(header.unmarshallTableHeader(marshalled));
+        header.setData(i, i % 2, 1, i * 100, i % 3, i * 10, i % 4, i * 100, types, allowNull, names);
         
-        // Pola pozostają bez zmian
-        EXPECT_EQ(header.getOid(), 0);
+        std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+        
+        tableHeader newHeader;
+        newHeader.unmarshallTableHeader(data);
+        
+        EXPECT_EQ(newHeader.getOid(), i);
+        EXPECT_EQ(newHeader.getContainToast(), i % 2);
+        ASSERT_EQ(newHeader.getColumnNames().size(), 1);
+        EXPECT_EQ(newHeader.getColumnNames()[0], "col_" + std::to_string(i));
     }
 }
 
-TEST(TableHeaderTest, PerformanceMarshall) {
-    const int iterations = 1000;
+TEST(TableHeaderTest, ReuseHeaderObject) {
     tableHeader header;
     
-    auto start = std::chrono::high_resolution_clock::now();
+    header.setData(1, 0, 1, 100, 0, 10, 0, 200, {1}, {0}, {"first"});
+    std::vector<uint8_t> data1 = header.marshallTableHeaderWithData();
     
-    for (int i = 0; i < iterations; i++) {
-        std::vector<uint8_t> result = header.marshallTableHeader(i, 1, 10, 1000, 2, 500, 3, 256, 64);
-        volatile size_t dummy = result.size();
-        (void)dummy;
-    }
+    header.setData(2, 1, 2, 200, 1, 20, 1, 400, {2, 3}, {1, 0}, {"second", "third"});
+    std::vector<uint8_t> data2 = header.marshallTableHeaderWithData();
     
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    EXPECT_NE(data1, data2);
     
-    EXPECT_LT(duration.count(), 1000000); // Mniej niż 1s dla 1000 operacji
+    tableHeader newHeader1;
+    newHeader1.unmarshallTableHeader(data1);
+    EXPECT_EQ(newHeader1.getOid(), 1);
+    ASSERT_EQ(newHeader1.getColumnNames().size(), 1);
+    
+    tableHeader newHeader2;
+    newHeader2.unmarshallTableHeader(data2);
+    EXPECT_EQ(newHeader2.getOid(), 2);
+    ASSERT_EQ(newHeader2.getColumnNames().size(), 2);
 }
 
-TEST(TableHeaderTest, PerformanceUnmarshall) {
-    const int iterations = 1000;
-    tableHeader header1;
-    tableHeader header2;
-    
-    std::vector<uint8_t> data = header1.marshallTableHeader(42, 1, 5, 9999, 2, 555, 3, 1024, 256);
-    
-    auto start = std::chrono::high_resolution_clock::now();
-    
-    for (int i = 0; i < iterations; i++) {
-        header2.unmarshallTableHeader(data);
-    }
-    
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    
-    EXPECT_LT(duration.count(), 1000000); // Mniej niż 1s dla 1000 operacji
-}
-
-TEST(TableHeaderTest, DestructorTest) {
-    for (int i = 0; i < 10; i++) {
-        tableHeader* header1 = new tableHeader();
-        tableHeader* header2 = new tableHeader();
-        
-        std::vector<uint8_t> marshalled = header1->marshallTableHeader(i, 1, 5, 1000, 2, 100, 3, 256, 64);
-        header2->unmarshallTableHeader(marshalled);
-        
-        EXPECT_EQ(header1->getOid(), 0);
-        EXPECT_EQ(header2->getOid(), 0);
-        
-        delete header1;
-        delete header2;
-    }
-}
-
-TEST(TableHeaderTest, MemoryConsistency) {
-    tableHeader sourceHeader;
-    std::vector<tableHeader> headers(10);
-    
-    std::vector<uint8_t> data = sourceHeader.marshallTableHeader(42, 1, 5, 9999, 2, 555, 3, 1024, 256);
-    
-    for (auto& header : headers) {
-        header.unmarshallTableHeader(data);
-        
-        // Wszystkie obiekty pozostają z wartościami domyślnymi
-        EXPECT_EQ(header.getOid(), 0);
-        EXPECT_EQ(header.getContainToast(), 0);
-        EXPECT_EQ(header.getNumberOfColumns(), 0);
-    }
-}
-
-TEST(TableHeaderTest, EdgeCaseValues) {
-    tableHeader header1;
-    tableHeader header2;
-    tableHeader header3;
-    tableHeader header4;
-    
-    // Test z wartościami -1, 0, 1
-    std::vector<uint8_t> result1 = header1.marshallTableHeader(-1, -1, -1, -1, -1, -1, -1, -1, -1);
-    std::vector<uint8_t> result2 = header2.marshallTableHeader(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    std::vector<uint8_t> result3 = header3.marshallTableHeader(1, 1, 1, 1, 1, 1, 1, 1, 1);
-    
-    // Powinny być różne dane
-    EXPECT_NE(result1, result2);
-    EXPECT_NE(result2, result3);
-    EXPECT_NE(result1, result3);
-    
-    // Ale ten sam rozmiar
-    EXPECT_EQ(result1.size(), 33);
-    EXPECT_EQ(result2.size(), 33);
-    EXPECT_EQ(result3.size(), 33);
-    
-    // Unmarshall nie zmienia pól obiektów
-    header4.unmarshallTableHeader(result1);
-    EXPECT_EQ(header4.getOid(), 0);
-    
-    header4.unmarshallTableHeader(result2);
-    EXPECT_EQ(header4.getOid(), 0);
-    
-    header4.unmarshallTableHeader(result3);
-    EXPECT_EQ(header4.getOid(), 0);
-}
-
-TEST(TableHeaderTest, DataIntegrityCheck) {
-    tableHeader header1;
-    tableHeader header2;
-    
-    // Sprawdź czy marshall produkuje spójne dane
-    std::vector<uint8_t> result = header1.marshallTableHeader(
-        0x12345678,  // oid
-        0x42,        // contain_toast
-        0x87654321,  // numberOfColumns
-        0x1234567890ABCDEFLL, // owner
-        0x33,        // pg_namespace
-        0xABCDEF12,  // pg_constraint
-        0x77,        // rights
-        0x11223344,  // freeSpace
-        0x55667788   // unitSize
-    );
-    
-    EXPECT_EQ(result.size(), 33);
-    
-    header2.unmarshallTableHeader(result);
-    
-    // Unmarshall nie przypisuje do pól klasy
-    EXPECT_EQ(header2.getOid(), 0);
-    EXPECT_EQ(header2.getContainToast(), 0);
-    EXPECT_EQ(header2.getNumberOfColumns(), 0);
-    EXPECT_EQ(header2.getOwner(), 0);
-    EXPECT_EQ(header2.getPgNamespace(), 0);
-    EXPECT_EQ(header2.getPgConstraint(), 0);
-    EXPECT_EQ(header2.getRights(), 0);
-    EXPECT_EQ(header2.getFreeSpace(), 0);
-    EXPECT_EQ(header2.getUnitSize(), 0);
-}
-
-TEST(TableHeaderTest, MarshallInternalConsistency) {
+TEST(TableHeaderTest, CompareMarshallMethods) {
     tableHeader header;
+    std::vector<int8_t> types = {1, 2};
+    std::vector<int8_t> allowNull = {0, 1};
+    std::vector<std::string> names = {"col1", "col2"};
     
-    // Testuj czy marshall zawsze produkuje ten sam rezultat dla tych samych danych
-    std::vector<uint8_t> result1 = header.marshallTableHeader(123, 1, 5, 9999, 2, 555, 3, 1024, 256);
-    std::vector<uint8_t> result2 = header.marshallTableHeader(123, 1, 5, 9999, 2, 555, 3, 1024, 256);
-    std::vector<uint8_t> result3 = header.marshallTableHeader(123, 1, 5, 9999, 2, 555, 3, 1024, 256);
+    header.setData(42, 1, 2, 9999, 2, 555, 3, 2048, types, allowNull, names);
     
-    EXPECT_EQ(result1, result2);
-    EXPECT_EQ(result2, result3);
-    EXPECT_EQ(result1, result3);
+    std::vector<uint8_t> dataWithData = header.marshallTableHeaderWithData();
+    std::vector<uint8_t> directData = header.marshallTableHeader(42, 1, 2, 9999, 2, 555, 3, 2048, types, allowNull, names);
     
-    EXPECT_EQ(result1.size(), 33);
-    EXPECT_EQ(result2.size(), 33);
-    EXPECT_EQ(result3.size(), 33);
+    EXPECT_EQ(dataWithData, directData);
 }
 
-TEST(TableHeaderTest, MarshallSizeConsistency) {
+TEST(TableHeaderTest, DataConsistencyAfterMultipleOperations) {
     tableHeader header;
+    std::vector<int8_t> types = {1, 2, 3};
+    std::vector<int8_t> allowNull = {0, 1, 0};
+    std::vector<std::string> names = {"id", "name", "age"};
     
-    // Niezależnie od wartości, rozmiar zawsze powinien być 33
-    std::vector<uint8_t> result1 = header.marshallTableHeader(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    std::vector<uint8_t> result2 = header.marshallTableHeader(999999, 127, 999999, 9223372036854775807LL, 127, 999999, 127, 999999, 999999);
-    std::vector<uint8_t> result3 = header.marshallTableHeader(-999999, -128, -999999, -9223372036854775808LL, -128, -999999, -128, -999999, -999999);
+    header.setData(42, 1, 3, 9999, 2, 555, 3, 2048, types, allowNull, names);
     
-    EXPECT_EQ(result1.size(), 33);
-    EXPECT_EQ(result2.size(), 33);
-    EXPECT_EQ(result3.size(), 33);
+    std::vector<uint8_t> data1 = header.marshallTableHeaderWithData();
+    std::vector<uint8_t> data2 = header.marshallTableHeaderWithData();
+    
+    EXPECT_EQ(data1, data2);
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data1);
+    
+    std::vector<uint8_t> data3 = newHeader.marshallTableHeaderWithData();
+    
+    EXPECT_EQ(data1, data3);
+}
+
+TEST(TableHeaderTest, ComplexDataRoundTrip) {
+    tableHeader header;
+    std::vector<int8_t> types = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector<int8_t> allowNull = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+    std::vector<std::string> names = {
+        "employee_id", "first_name", "last_name", "email", 
+        "phone_number", "hire_date", "job_id", "salary", 
+        "commission_pct", "department_id"
+    };
+    
+    header.setData(123, 1, 10, 456789, 5, 999, 7, 8192, types, allowNull, names);
+    
+    std::vector<uint8_t> data = header.marshallTableHeaderWithData();
+    
+    tableHeader newHeader;
+    newHeader.unmarshallTableHeader(data);
+    
+    EXPECT_EQ(newHeader.getOid(), 123);
+    EXPECT_EQ(newHeader.getContainToast(), 1);
+    EXPECT_EQ(newHeader.getNumberOfColumns(), 10);
+    EXPECT_EQ(newHeader.getOwner(), 456789);
+    EXPECT_EQ(newHeader.getPgNamespace(), 5);
+    EXPECT_EQ(newHeader.getPgConstraint(), 999);
+    EXPECT_EQ(newHeader.getRights(), 7);
+    EXPECT_EQ(newHeader.getFreeSpace(), 8192);
+    
+    ASSERT_EQ(newHeader.getTypesWithAllowNull().size(), 10);
+    ASSERT_EQ(newHeader.getColumnNames().size(), 10);
+    
+    for (size_t i = 0; i < names.size(); i++) {
+        EXPECT_EQ(newHeader.getColumnNames()[i], names[i]);
+        EXPECT_EQ(newHeader.getTypesWithAllowNull()[i], allowNull[i]);
+    }
 }

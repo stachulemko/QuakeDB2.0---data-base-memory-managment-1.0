@@ -2,21 +2,17 @@
 
 
 
-block8kb::block8kb(int32_t freeSpace, int32_t unitSize){
-            this->freeSpace = freeSpace;
-            this->unitSize = unitSize;
-        }
 
 block8kb::~block8kb(){
-
 }
+
 
 
 std::vector<uint8_t> block8kb::marshallBlock8kb(){
     std::vector<uint8_t> result;
     std::vector<uint8_t> *blockBytes = marshalInt16_t(allBlockIndetification);
     result.insert(result.end(),blockBytes->begin(),blockBytes->end());
-    std::vector<uint8_t> headerBytes = header.marshallBlockHeaderWithData();
+    std::vector<uint8_t> headerBytes = header->marshallBlockHeaderWithData();
     blockBytes->insert(blockBytes->end(), headerBytes.begin(), headerBytes.end());
     for (int i=0;i<tuples.size();i++){
         std::vector<uint8_t> tupleBytes = tuples[i].marshallTupleWithData();
@@ -25,7 +21,9 @@ std::vector<uint8_t> block8kb::marshallBlock8kb(){
     }
     int32_t zeroNums = blockSize - result.size();
     for (int i=0;i<zeroNums;i++){
-        result.push_back(00000000);
+        if(result.size() + 1 <= blockSize){
+            result.push_back(00000000);
+        }
     }
     delete blockBytes;
     //blockBytes.insert(blockBytes.begin(), headerBytes.begin(), headerBytes.end());
@@ -41,7 +39,7 @@ void block8kb::unmarshallBlock8kb(const std::vector<uint8_t>& data){
     if(blockType == allBlockIndetification){
         std::vector<uint8_t> headerBytes;
         headerBytes.insert(headerBytes.end(),data.begin()+2,data.begin()+19);
-        header.unmarshallBlockHeader(headerBytes);
+        header->unmarshallBlockHeader(headerBytes);
         std::vector<uint8_t> tuplesBytes;
         tuplesBytes.insert(tuplesBytes.end(),data.begin()+19,data.end());
         int32_t tmpSize = 0;
@@ -73,9 +71,12 @@ void block8kb::unmarshallBlock8kb(const std::vector<uint8_t>& data){
 
 }
 
+
+/*
 void block8kb::setData(blockHeader& header , std::vector<tuple>& tuples)
 {
     this->header = header;
     this->tuples = tuples;
 }
+*/
 

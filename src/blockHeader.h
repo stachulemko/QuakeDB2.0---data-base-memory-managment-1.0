@@ -30,6 +30,11 @@ class blockHeader{
         int16_t pd_flags;        // 2 bytes
         int8_t contain_toast;    // 1 byte
     public:
+        
+        int32_t getSize(){
+            return 17;
+        }
+
         blockHeader();
 
         ~blockHeader();
@@ -58,6 +63,15 @@ class blockHeader{
         int16_t getPdChecksum() const { return pd_checksum; }
         int16_t getPdFlags() const { return pd_flags; }
         int8_t getContainToast() const { return contain_toast; }
+
+        void showData(){
+            std::cout<<"nextblock: "<<nextblock<<std::endl;
+            std::cout<<"blockIndetification: "<<blockIndetification<<std::endl;
+            std::cout<<"pd_lsn: "<<pd_lsn<<std::endl;
+            std::cout<<"pd_checksum: "<<pd_checksum<<std::endl;
+            std::cout<<"pd_flags: "<<pd_flags<<std::endl;
+            std::cout<<"contain_toast: "<<(int)contain_toast<<std::endl;
+        }
 
 
 };

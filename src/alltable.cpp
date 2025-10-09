@@ -8,7 +8,7 @@ allTable::~allTable(){
 
 std::vector<uint8_t> allTable::marshallAllTable(){
     std::vector<uint8_t> result;
-    std::vector<uint8_t> tableBytes = header->marshallTableHeaderWithData();
+    std::vector<uint8_t> tableBytes ;//= header->marshallTableHeaderWithData();
     result.insert(result.end(),tableBytes.begin(),tableBytes.end());
     for (int i=0;i<blocks.size();i++){
         std::vector<uint8_t> blockBytes = blocks[i]->marshallBlock8kb();
@@ -23,13 +23,13 @@ void allTable::unmarshallAllTable(const std::vector<uint8_t>& data){
     }
     std::vector<uint8_t> headerBytes;
     headerBytes.insert(headerBytes.end(),data.begin(),data.begin()+33);
-    header->unmarshallTableHeader(headerBytes);
+    //header->unmarshallTableHeader(headerBytes);
     //std::vector<uint8_t> tuplesBytes;
     //tuplesBytes.insert(tuplesBytes.end(),data.begin()+39,data.end());
-    for (int i=33;i<data.size();i+=blockSize){
+    for (int i=0;i<data.size();i+=blockSize){
         std::vector<uint8_t>block8kbBytes;
         block8kbBytes.insert(block8kbBytes.end(),data.begin()+i,data.begin()+i+blockSize);
-        block8kb *block8kbObj = new block8kb(freeSpace,unitSize);
+        block8kb *block8kbObj = new block8kb(freeSpace,0,0,0,0,0,0);
         block8kbObj->unmarshallBlock8kb(block8kbBytes);
         blocks.push_back(block8kbObj);
     }
