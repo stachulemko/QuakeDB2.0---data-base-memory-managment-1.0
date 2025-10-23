@@ -4,6 +4,10 @@
 
 
 block8kb::~block8kb(){
+    if(header != nullptr) {
+        delete header;
+        header = nullptr;
+    }
 }
 
 

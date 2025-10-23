@@ -62,6 +62,7 @@ class tableHeader{
         int32_t getFreeSpace()  { return freeSpace; }
         std::vector<int8_t> getTypesWithAllowNull()  { return typesWithAllowNull; }
         std::vector<std::string> getColumnNames()  { return columnNames; }
+        std::vector<int8_t>getTypes()  { return types; }
         
 
         tableHeader(int32_t oid,int8_t contain_toast,int32_t numberOfColumns,int64_t owner,int8_t pg_namespace,int32_t pg_constraint,int8_t rights,int32_t freeSpace,std::vector<int8_t> types,std::vector<int8_t> typesWithAllowNull , std::vector<std::string> columnNames){

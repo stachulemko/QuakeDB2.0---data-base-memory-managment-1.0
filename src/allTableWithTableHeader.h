@@ -1,3 +1,4 @@
+/*
 #ifndef ALLTABLEWITHTABLEHEADER_H
 #define ALLTABLEWITHTABLEHEADER_H
 
@@ -18,8 +19,8 @@ class AllTableWithTableHeader {
             if(types.size()==0 || typesWithAllowNull.size()==0 || columnNames.size()==0 || types.size()!=typesWithAllowNull.size() || types.size()!=columnNames.size()){
                 //throw std::invalid_argument("Invalid types or columnNames or typesWithAllowNull size");
             }
-            header = new tableHeader(oid, contain_toast, numberOfColumns, owner, pg_namespace, pg_constraint, rights, freeSpace,types,typesWithAllowNull,columnNames);
-            alltable = new allTable(freeSpace);
+            //header = new tableHeader(oid, contain_toast, numberOfColumns, owner, pg_namespace, pg_constraint, rights, freeSpace,types,typesWithAllowNull,columnNames);
+            //alltable = new allTable(freeSpace);
             //createBinFile(PathTableHeaders, std::to_string(oid));
             //createBinFile(PathTableRows, std::to_string(oid));
             //saveBlock(PathTableHeaders, std::to_string(oid), header->marshallTableHeaderWithData());
@@ -57,3 +58,4 @@ class AllTableWithTableHeader {
 
 
 #endif
+*/

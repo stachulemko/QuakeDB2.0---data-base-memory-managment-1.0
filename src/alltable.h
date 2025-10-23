@@ -9,23 +9,21 @@
 
 class allTable{
     private:
-        //tableHeader *header = nullptr;
+        tableHeader *header = nullptr;
         std::vector<block8kb*> blocks;
         block8kb* blockTmp= nullptr;
         int32_t freeSpace = 0 ;
 
-        int32_t nextblock =0 ;
-        int32_t blockIndetification =0 ;
-        int32_t pd_lsn=0;          
-        int16_t pd_checksum=0;   
-        int16_t pd_flags=0;
-        int8_t contain_toast=0;  
     private:
         
     public:
-        allTable(int32_t freeSpace){
+        // freeSpace bytes
+        allTable(){};
+
+        allTable(int32_t freeSpace,tableHeader* tableHeaderPtr){
+            header = tableHeaderPtr;
             //int32_t oid,int8_t contain_toast,int32_t numberOfColumns,int64_t owner,int8_t pg_namespace,int32_t pg_constraint,int8_t rights,int32_t freeSpace, int32_t unitSize
-            //header = new tableHeader(oid,contain_toast,numberOfColumns,owner,pg_namespace,pg_constraint,rights,freeSpace,unitSize);
+            //header = new tableHeader(header->getOid(),header->getContainToast(),header->getNumberOfColumns(),header->getOwner(),header->getPgNamespace(),header->getPgConstraint(),header->getRights(),freeSpace,header->getTypes(),header->getTypesWithAllowNull(),header->getColumnNames());
             //blockTmp = new block8kb()
             this->freeSpace = freeSpace;
         }
@@ -38,7 +36,7 @@ class allTable{
             blockTmp = new block8kb(freeSpace,nextblock,blockIndetification,pd_lsn,pd_checksum,pd_flags,contain_toast);
         }
 
-        void addDataToBlock(tuple& tupleObj){
+        void addDataToBlock(tuple& tupleObj,int32_t freeSpace,int32_t nextblock, int32_t blockIndetification, int32_t pd_lsn, int16_t pd_checksum, int16_t pd_flags, int8_t contain_toast){
             if(blockTmp==nullptr){
                 addNewBlock(freeSpace,nextblock,blockIndetification,pd_lsn,pd_checksum,pd_flags,contain_toast);
             }
@@ -67,6 +65,12 @@ class allTable{
                 blockTmp->showData();
             }
         }
+
+        //void update(std::vector<int32_t>blockNumsToChange,std::vector<allVars>newValues,std::vector<int32_t>columNums){
+        //    for (int i=0;i<blockNumsToChange.size();i++){
+        //
+        //    }
+        //}
 
 
         
