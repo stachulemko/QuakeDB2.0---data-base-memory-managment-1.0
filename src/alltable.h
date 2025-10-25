@@ -57,13 +57,16 @@ class allTable{
         }
 
         void showData(){
-            //header->showData();
-            for (int i=0;i<blocks.size();i++){
-                blocks[i]->showData();
+            if(header!=nullptr){
+                header->showData();
+                for (int i=0;i<blocks.size();i++){
+                    blocks[i]->showData();
+                }
+                if(blockTmp!=nullptr){
+                    blockTmp->showData();
+                }
             }
-            if(blockTmp!=nullptr){
-                blockTmp->showData();
-            }
+            
         }
 
         //void update(std::vector<int32_t>blockNumsToChange,std::vector<allVars>newValues,std::vector<int32_t>columNums){

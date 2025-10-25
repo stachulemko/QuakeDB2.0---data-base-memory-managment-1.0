@@ -17,18 +17,27 @@ class block8kb{
         std::vector<tuple> tuples;
 
         int32_t freeSpace = 0 ;
-        int32_t blockSizeAfterFreeSpace = blockSize - freeSpace;
+        int32_t blockSizeAfterFreeSpace = 0;
     public:
         block8kb(int32_t freeSpace,int32_t nextblock, int32_t blockIndetification, int32_t pd_lsn, int16_t pd_checksum, int16_t pd_flags, int8_t contain_toast){
+            //std::cout << "Constructor called with freeSpace: " << freeSpace << std::endl;
+            //std::cout << "blockSize: " << blockSize << std::endl;
+            
             this->freeSpace = freeSpace;
+            //std::cout << "this->freeSpace set to: " << this->freeSpace << std::endl;
+            
+            this->blockSizeAfterFreeSpace = blockSize - this->freeSpace;
+            //std::cout << "blockSizeAfterFreeSpace calculated: " << this->blockSizeAfterFreeSpace << std::endl;
+            
             header = new blockHeader();
             header->setData(nextblock,blockIndetification,pd_lsn,pd_checksum,pd_flags,contain_toast);
-            //this->unitSize = unitSize;
+            
+            //std::cout << "Final blockSizeAfterFreeSpace: " << this->blockSizeAfterFreeSpace << std::endl;
         }
 
         ~block8kb();
         
-        int32_t getblockSizeAfterFreeSpace()  { return blockSizeAfterFreeSpace; }
+        int32_t getblockSizeAfterFreeSpace()  { return this->blockSizeAfterFreeSpace; }
         int32_t getSize(){
             int32_t tmpSize = header->getSize();
             for (int j=0;j<tuples.size();j++){

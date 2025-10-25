@@ -17,10 +17,10 @@ std::vector<uint8_t> block8kb::marshallBlock8kb(){
     std::vector<uint8_t> *blockBytes = marshalInt16_t(allBlockIndetification);
     result.insert(result.end(),blockBytes->begin(),blockBytes->end());
     std::vector<uint8_t> headerBytes = header->marshallBlockHeaderWithData();
-    blockBytes->insert(blockBytes->end(), headerBytes.begin(), headerBytes.end());
+    result.insert(result.end(), headerBytes.begin(), headerBytes.end());
     for (int i=0;i<tuples.size();i++){
         std::vector<uint8_t> tupleBytes = tuples[i].marshallTupleWithData();
-        result.insert(blockBytes->end(), tupleBytes.begin(), tupleBytes.end());
+        result.insert(result.end(), tupleBytes.begin(), tupleBytes.end());
 
     }
     int32_t zeroNums = blockSize - result.size();
