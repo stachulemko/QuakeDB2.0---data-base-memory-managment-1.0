@@ -36,7 +36,7 @@ class allTable{
             blockTmp = new block8kb(freeSpace,nextblock,blockIndetification,pd_lsn,pd_checksum,pd_flags,contain_toast);
         }
 
-        void addDataToBlock(tuple& tupleObj,int32_t freeSpace,int32_t nextblock, int32_t blockIndetification, int32_t pd_lsn, int16_t pd_checksum, int16_t pd_flags, int8_t contain_toast){
+        void addDataToBlock(tuple& tupleObj,int32_t nextblock, int32_t blockIndetification, int32_t pd_lsn, int16_t pd_checksum, int16_t pd_flags, int8_t contain_toast){
             if(blockTmp==nullptr){
                 addNewBlock(freeSpace,nextblock,blockIndetification,pd_lsn,pd_checksum,pd_flags,contain_toast);
             }

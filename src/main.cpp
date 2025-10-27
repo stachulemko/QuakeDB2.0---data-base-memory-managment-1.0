@@ -13,7 +13,7 @@ int main() {
     allTable table(8192, &th);
     tuple tupleObj;
     tupleObj.setData(100,200,1,0,24,true,5000,{false,true,false},{allVars(123),allVars("test"),allVars(43)});
-    table.addDataToBlock(tupleObj, 8192, 0, 0, 0, 0, 0, 0);
+    table.addDataToBlock(tupleObj, 0, 0, 0, 0, 0, 0);
 
     allTable table2();
     table.unmarshallAllTable(table.marshallAllTable());
