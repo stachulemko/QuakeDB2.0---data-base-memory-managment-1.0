@@ -13,7 +13,8 @@ class allTable{
         std::vector<block8kb*> blocks;
         block8kb* blockTmp= nullptr;
         int32_t freeSpace = 0 ;
-
+        
+        
     private:
         
     public:
@@ -50,11 +51,12 @@ class allTable{
             }
         }
 
-        void unmarshallAllTable(const std::vector<uint8_t>& data);
+        void unmarshallAllTable(const std::vector<uint8_t>& data,std::vector<std::pair<int64_t,int64_t>> pos);  //fix : add there vector with pos_start , pos_end which will help us calculate block
 
         void setHeaderData(int32_t oid, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights){
             //header->setData(oid,contain_toast,numberOfColumns,owner,pg_namespace,pg_constraint,rights,freeSpace,unitSize);
         }
+
 
         void showData(){
             if(header!=nullptr){
@@ -74,6 +76,23 @@ class allTable{
         //
         //    }
         //}
+
+        //----------------------------------------------------------
+        //----------------------------------------------------------
+        //----------------------------------------------------------
+        //----------test function to search to test update by oid---
+        //----------------------------------------------------------
+        //----------------------------------------------------------
+
+
+        void testSearchAndUpdateTuple(int64_t oid,int64_t xmin, int64_t xmax, int32_t cid, int32_t infomask, int16_t hoff, bool bitmap, int64_t newOid, std::vector<bool>bitMap,std::vector<allVars>dataValues){
+            for (int i=0;i<blocks.size();i++){
+                //blocks[i]->testSearchAndUpdateTuple(oid,xmin,xmax,cid,infomask,hoff,bitmap,newOid,bitMap,dataValues);
+            }
+            if(blockTmp!=nullptr){
+                //blockTmp->testSearchAndUpdateTuple(oid,xmin,xmax,cid,infomask,hoff,bitmap,newOid,bitMap,dataValues);
+            }
+        }
 
 
         

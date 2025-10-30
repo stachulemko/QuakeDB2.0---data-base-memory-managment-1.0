@@ -37,7 +37,7 @@ std::vector<uint8_t> allTable::marshallAllTable(){
     return result;
 }
 
-void allTable::unmarshallAllTable(const std::vector<uint8_t>& data){
+void allTable::unmarshallAllTable(const std::vector<uint8_t>& data,std::vector<std::pair<int64_t,int64_t>> pos){
     if(data.size()<33){
         assert("error : the data is not complete");
     }

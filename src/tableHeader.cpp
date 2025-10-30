@@ -114,6 +114,9 @@ std::vector<uint8_t> tableHeader::marshallTableHeader(int32_t oid,int8_t contain
         }
         
     }
+    for (int i=0;i<tableHeaderSize-sizeAll;i++){
+        //result.push_back(00000000);
+    }
     return result;
 }
 

@@ -20,9 +20,10 @@ class tableHeader{
         int32_t freeSpace=0;
         std::vector<int8_t> types={};
         std::vector<int8_t> typesWithAllowNull={}; 
-        std::vector<std::string> columnNames={};
+        std::vector<std::string> columnNames={};   // it is string only with the size of 200bytes
 
     public:
+    
         tableHeader();
 
         ~tableHeader();
