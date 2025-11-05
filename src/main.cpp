@@ -15,8 +15,8 @@ int main() {
     tupleObj.setData(100,200,1,0,24,true,5000,{false,true,false},{allVars(123),allVars("test"),allVars(43)});
     table.addDataToBlock(tupleObj, 0, 0, 0, 0, 0, 0);
 
-    allTable table2();
-    table.unmarshallAllTable(table.marshallAllTable());
-    table.showData();
+    allTable table2;
+    table2.unmarshallAllTable(table.marshallAllTable());
+    table2.showData();
     return 0;
 }

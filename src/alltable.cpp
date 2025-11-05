@@ -50,6 +50,7 @@ void allTable::unmarshallAllTable(const std::vector<uint8_t>& data){
         std::vector<uint8_t>block8kbBytes;
         block8kbBytes.insert(block8kbBytes.end(),data.begin()+i,data.begin()+i+blockSize);
         block8kb *block8kbObj = new block8kb(freeSpace,0,0,0,0,0,0);
+        //block8kbObj->setBlockNum();
         block8kbObj->unmarshallBlock8kb(block8kbBytes);
         blocks.push_back(block8kbObj);
     }
