@@ -112,7 +112,10 @@ std::vector<uint8_t> tableHeader::marshallTableHeader(int32_t oid,int8_t contain
             delete nameColumnBytes;
 
         }
-        
+    }
+    int32_t firstVal = result.size();
+    for (int i=0;i<tableHeaderSize-firstVal;i++){
+        result.push_back(00000000);
     }
     return result;
 }
@@ -126,8 +129,11 @@ void tableHeader::unmarshallTableHeader(const std::vector<uint8_t>& data){
     UnmarshalInt16_t(&typeTableHeader, &typeTableBin);
     tmpSize+=2;
     //int32_t oid=0;
+
+    int32_t tmpOid = 0;
     std::vector<uint8_t> oidBin = std::vector<uint8_t>(data.begin()+tmpSize, data.begin() + tmpSize + 4);
-    UnmarshalInt32_t(&oid, &oidBin);
+    UnmarshalInt32_t(&tmpOid, &oidBin);
+    this->oid = tmpOid;
     tmpSize+=4;
 
     //int8_t contain_toast=0;

@@ -18,7 +18,9 @@ class allTable{
         
     public:
         // freeSpace bytes
-        allTable(){};
+        allTable(){
+            header = new tableHeader();
+        };
 
         allTable(int32_t freeSpace,tableHeader* tableHeaderPtr){
             header = tableHeaderPtr;

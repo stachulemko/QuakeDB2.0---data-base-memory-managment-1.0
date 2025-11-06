@@ -1,8 +1,5 @@
 #include "block8kb.h"
 
-
-
-
 block8kb::~block8kb(){
     if(header != nullptr) {
         delete header;
@@ -10,12 +7,17 @@ block8kb::~block8kb(){
     }
 }
 
-
-
 std::vector<uint8_t> block8kb::marshallBlock8kb(){
     std::vector<uint8_t> result;
     std::vector<uint8_t> *blockBytes = marshalInt16_t(allBlockIndetification);
     result.insert(result.end(),blockBytes->begin(),blockBytes->end());
+    std::cout<<"+++++++++++++="<<std::endl;
+    for (int i = 0; i < 2; ++i) {
+            for (int b = 7; b >= 0; --b)
+                std::cout << ((result[i] >> b) & 1);
+            }
+    std::cout<<std::endl;
+    std::cout<<"+++++++++++++="<<std::endl;
     std::vector<uint8_t> headerBytes = header->marshallBlockHeaderWithData();
     result.insert(result.end(), headerBytes.begin(), headerBytes.end());
     for (int i=0;i<tuples.size();i++){
@@ -44,6 +46,7 @@ void block8kb::unmarshallBlock8kb(const std::vector<uint8_t>& data){
         std::vector<uint8_t> headerBytes;
         headerBytes.insert(headerBytes.end(),data.begin()+2,data.begin()+19);
         header->unmarshallBlockHeader(headerBytes);
+        header->showData();
         std::vector<uint8_t> tuplesBytes;
         tuplesBytes.insert(tuplesBytes.end(),data.begin()+19,data.end());
         int32_t tmpSize = 0;
