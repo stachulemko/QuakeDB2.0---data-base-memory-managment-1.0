@@ -22,15 +22,19 @@ void tuple::unmarshallTuple(const std::vector<uint8_t>& data) {
         return;
     }
     int16_t type=0;
+    int32_t offset = 0;
     std::vector<uint8_t>typeBytes;
     typeBytes.insert(typeBytes.end(),data.begin(),data.begin()+2);
+    offset += 2;
     UnmarshalInt16_t(&type,&typeBytes);
     if(type == tupleIndetification){
         std::vector<uint8_t>headerBytes;
-        headerBytes.insert(headerBytes.end(),data.begin()+2,data.begin()+37);
+        headerBytes.insert(headerBytes.end(),data.begin()+offset,data.begin()+offset+39);
+        offset += 39;
         header.unmarshallHeaderTuple(headerBytes);
+        //header.showData();
         std::vector<uint8_t>dataBytes;
-        dataBytes.insert(dataBytes.end(),data.begin()+37,data.end());
+        dataBytes.insert(dataBytes.end(),data.begin()+offset,data.end());
         dataNullBitMap.unmarshallDataNullBitMapTuple(dataBytes);
     }
 }

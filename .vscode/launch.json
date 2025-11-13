@@ -14,7 +14,7 @@
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
             "pipeTransport": {
-                "pipeProgram": "ssh",
+                "pipeProgram": "ssh -i /c/dev/.ssh/id_rsa     -o UserKnownHostsFile=/c/dev/.ssh/known_hosts     -o GlobalKnownHostsFile=/dev/null     -o StrictHostKeyChecking=no",
                 "pipeArgs": [
                     "osboxes@127.0.0.1",
                     "-T"

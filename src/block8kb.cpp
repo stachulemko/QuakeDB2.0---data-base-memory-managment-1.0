@@ -39,37 +39,45 @@ std::vector<uint8_t> block8kb::marshallBlock8kb(){
 void block8kb::unmarshallBlock8kb(const std::vector<uint8_t>& data){
     if(data.size()!= blockSize) return;
     std::vector<uint8_t>typeBytes ;
-    typeBytes.insert(typeBytes.end(),data.begin(),data.begin()+2);
+    int32_t offset = 0 ;
+    typeBytes.insert(typeBytes.end(),data.begin()+offset,data.begin()+offset+2);
     int16_t blockType =0 ;
     UnmarshalInt16_t(&blockType,&typeBytes);
+    offset += 2 ;
     if(blockType == allBlockIndetification){
         std::vector<uint8_t> headerBytes;
-        headerBytes.insert(headerBytes.end(),data.begin()+2,data.begin()+19);
+        headerBytes.insert(headerBytes.end(),data.begin()+offset,data.begin()+offset+header->getSize());
         header->unmarshallBlockHeader(headerBytes);
         header->showData();
+        offset += header->getSize();
         std::vector<uint8_t> tuplesBytes;
-        tuplesBytes.insert(tuplesBytes.end(),data.begin()+19,data.end());
+        tuplesBytes.insert(tuplesBytes.end(),data.begin()+offset,data.end());
         int32_t tmpSize = 0;
         while(tmpSize < tuplesBytes.size()){
             int16_t tupleType = 0;
             std::vector<uint8_t> tupleTypeBytes;
             tupleTypeBytes.insert(tupleTypeBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+2);
+            tmpSize+=2;
             UnmarshalInt16_t(&tupleType,&tupleTypeBytes);
             if(tupleType == tupleIndetification){
                 std::vector<uint8_t> tupleData;
                 int32_t tupleSize = 0 ;
                 std::vector<uint8_t> tupleSizeBytes;
-                tupleSizeBytes.insert(tupleSizeBytes.end(),tuplesBytes.begin()+tmpSize+2,tuplesBytes.begin()+tmpSize+6);
-                UnmarshalInt32_t(&tupleSize,&tupleSizeBytes);
-
+                //tupleSizeBytes.insert(tupleSizeBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+4);
+                //UnmarshalInt32_t(&tupleSize,&tupleSizeBytes);
+                //tmpSize+=4;
                 std::vector<uint8_t>tupleBytes;
-                tupleBytes.insert(tupleBytes.end(),tuplesBytes.begin()+tmpSize+6,tuplesBytes.begin()+tmpSize+tupleSize+6);
+                tupleBytes.insert(tupleBytes.end(),tupleTypeBytes.begin(),tupleTypeBytes.end());
+                tupleBytes.insert(tupleBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.end());
                 //tupleTypeBytes.insert(tupleTypeBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+2);
                 //tupleData.insert(tupleData.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+100);
                 tuple tmpTuple;
                 tmpTuple.unmarshallTuple(tupleBytes);
+                std::cout<<"========"<<std::endl;
+                tmpTuple.showData();
+                std::cout<<"========"<<std::endl;
                 tuples.push_back(tmpTuple);
-                tmpSize+=tupleSize+6;
+                tmpSize+=tupleSize;
             } else {
                 break;
             }
