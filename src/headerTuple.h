@@ -35,7 +35,7 @@ class HeaderTuple {
         int16_t t_hoff;
         bool null_bitmap;
         int64_t optional_oid;
-        int32_t size = 39;
+        int32_t size = 35;
         
     public:
 

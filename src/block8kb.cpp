@@ -67,15 +67,12 @@ void block8kb::unmarshallBlock8kb(const std::vector<uint8_t>& data){
                 //UnmarshalInt32_t(&tupleSize,&tupleSizeBytes);
                 //tmpSize+=4;
                 std::vector<uint8_t>tupleBytes;
-                tupleBytes.insert(tupleBytes.end(),tupleTypeBytes.begin(),tupleTypeBytes.end());
-                tupleBytes.insert(tupleBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.end());
+                tupleBytes.insert(tupleBytes.end(),tupleTypeBytes.begin(),tupleTypeBytes.end());   // correct  
+                tupleBytes.insert(tupleBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.end()); // 
                 //tupleTypeBytes.insert(tupleTypeBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+2);
                 //tupleData.insert(tupleData.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+100);
                 tuple tmpTuple;
                 tmpTuple.unmarshallTuple(tupleBytes);
-                std::cout<<"========"<<std::endl;
-                tmpTuple.showData();
-                std::cout<<"========"<<std::endl;
                 tuples.push_back(tmpTuple);
                 tmpSize+=tupleSize;
             } else {
