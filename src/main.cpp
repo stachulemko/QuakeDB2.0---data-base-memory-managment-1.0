@@ -9,7 +9,6 @@
 #include "allTableWithTableHeader.h"
 #include "alltable.h"
 int main() {
-    
     tableHeader* th = new tableHeader(1,0,3,1001,0,0,7,1024,{1,2,3},{1,2,3},{"col1","col2","col3"});
     allTable table(200, th);
     tuple tupleObj;
