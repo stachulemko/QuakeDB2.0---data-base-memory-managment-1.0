@@ -9,15 +9,18 @@ tuple::~tuple(){
 std::vector<uint8_t> tuple::marshallTuple(int64_t xmin, int64_t xmax, int32_t cid, int32_t infomask, int16_t hoff, bool bitmap, int64_t oid, std::vector<bool>bitMap,std::vector<allVars>data){ 
     std::vector<uint8_t> result;
     std::vector<uint8_t> *typeBin = marshalInt16_t(tupleIndetification);
-    std::vector<uint8_t>hederBin = header.marshallHeaderTuple(xmin,xmax,cid,infomask,hoff,bitmap,oid);
+    std::vector<uint8_t>headerBin = header.marshallHeaderTuple(xmin,xmax,cid,infomask,hoff,bitmap,oid);
     std::vector<uint8_t>dataBin = dataNullBitMap.marshallDataNullBitMapTuple(bitMap,data);
+    std::vector<uint8_t> *sizeBin = marshalInt32_t(dataBin.size()+headerBin.size());
     std::cout<<"sizeTypeBin : "<<typeBin->size()<<std::endl;
-    std::cout<<"sizeHeaderBin : "<<hederBin.size()<<std::endl;
+    std::cout<<"sizeHeaderBin : "<<headerBin.size()<<std::endl;
     std::cout<<"sizeDataBin : "<<dataBin.size()<<std::endl;
     result.insert(result.end(),typeBin->begin(),typeBin->end());
-    result.insert(result.end(),hederBin.begin(),hederBin.end());
+    result.insert(result.end(),sizeBin->begin(),sizeBin->end());  //new 
+    result.insert(result.end(),headerBin.begin(),headerBin.end());
     result.insert(result.end(),dataBin.begin(),dataBin.end());
     delete typeBin;
+    delete sizeBin;
     return result;
 }
 void tuple::unmarshallTuple(const std::vector<uint8_t>& data) {
@@ -32,6 +35,7 @@ void tuple::unmarshallTuple(const std::vector<uint8_t>& data) {
     offset += 2;
     UnmarshalInt16_t(&type,&typeBytes);
     if(type == tupleIndetification){
+        offset+=4;
         std::vector<uint8_t>headerBytes;
         headerBytes.insert(headerBytes.end(),data.begin()+offset,data.begin()+offset+header.getSize());
         std::cout<<"unmarshallheaderBytes : "<<headerBytes.size()<<std::endl;

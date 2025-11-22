@@ -63,12 +63,13 @@ void block8kb::unmarshallBlock8kb(const std::vector<uint8_t>& data){
                 std::vector<uint8_t> tupleData;
                 int32_t tupleSize = 0 ;
                 std::vector<uint8_t> tupleSizeBytes;
-                //tupleSizeBytes.insert(tupleSizeBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+4);
-                //UnmarshalInt32_t(&tupleSize,&tupleSizeBytes);
-                //tmpSize+=4;
+                tupleSizeBytes.insert(tupleSizeBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+4);
+                UnmarshalInt32_t(&tupleSize,&tupleSizeBytes);
+                tmpSize+=4;
                 std::vector<uint8_t>tupleBytes;
                 tupleBytes.insert(tupleBytes.end(),tupleTypeBytes.begin(),tupleTypeBytes.end());   // correct  
-                tupleBytes.insert(tupleBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.end()); // 
+                tupleBytes.insert(tupleBytes.end(),tupleSizeBytes.begin(),tupleSizeBytes.end());
+                tupleBytes.insert(tupleBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+tupleSize); // 
                 //tupleTypeBytes.insert(tupleTypeBytes.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+2);
                 //tupleData.insert(tupleData.end(),tuplesBytes.begin()+tmpSize,tuplesBytes.begin()+tmpSize+100);
                 tuple tmpTuple;
