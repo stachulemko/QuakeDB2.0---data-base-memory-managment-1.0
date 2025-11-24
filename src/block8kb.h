@@ -71,6 +71,21 @@ class block8kb{
             }
         }
 
+        // Gettery do blockHeader
+        blockHeader* getHeader() { return header; }
+        const blockHeader* getHeader() const { return header; }
+        
+        // Gettery do tupli
+        std::vector<tuple>& getTuples() { return tuples; }
+        const std::vector<tuple>& getTuples() const { return tuples; }
+        
+        // Getter do konkretnej tupli
+        tuple& getTuple(size_t index) { return tuples[index]; }
+        const tuple& getTuple(size_t index) const { return tuples[index]; }
+        
+        // Getter do liczby tupli
+        size_t getTupleCount() const { return tuples.size(); }
+
 };
 #endif
 

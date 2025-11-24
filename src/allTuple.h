@@ -20,6 +20,7 @@ class tuple {
         int32_t getSize(){
             int32_t tmpSize = header.getSize();
             tmpSize += dataNullBitMap.getSize();
+            tmpSize+=6;
             return tmpSize;
         }
 
@@ -49,6 +50,14 @@ class tuple {
             header.showData();
             dataNullBitMap.showData();
         }
+
+        // Gettery do HeaderTuple
+        HeaderTuple& getHeader() { return header; }
+        const HeaderTuple& getHeader() const { return header; }
+        
+        // Gettery do DataNullBitMapTuple
+        DataNullBitMapTuple& getDataNullBitMap() { return dataNullBitMap; }
+        const DataNullBitMapTuple& getDataNullBitMap() const { return dataNullBitMap; }
 
         
 };

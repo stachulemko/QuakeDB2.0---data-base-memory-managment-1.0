@@ -1,8 +1,44 @@
 #include <gtest/gtest.h>
 #include "block8kb.h"
+#include "allTuple.h"
 #include <vector>
 #include <limits>
 #include <chrono>
+
+
+bool check(const block8kb& block1, const block8kb& block2) {
+    // Porównaj nagłówki
+    if (block1.getHeader()->getNextblock() != block2.getHeader()->getNextblock()) return false;
+    if (block1.getHeader()->getBlockIndetification() != block2.getHeader()->getBlockIndetification()) return false;
+    if (block1.getHeader()->getPdLsn() != block2.getHeader()->getPdLsn()) return false;
+    if (block1.getHeader()->getPdChecksum() != block2.getHeader()->getPdChecksum()) return false;
+    if (block1.getHeader()->getPdFlags() != block2.getHeader()->getPdFlags()) return false;
+    if (block1.getHeader()->getContainToast() != block2.getHeader()->getContainToast()) return false;
+
+    // Porównaj liczbę tupli
+    if (block1.getTupleCount() != block2.getTupleCount()) return false;
+
+    // Porównaj każdą tuplę
+    for (size_t i = 0; i < block1.getTupleCount(); ++i) {
+        const tuple& tuple1 = block1.getTuple(i);
+        const tuple& tuple2 = block2.getTuple(i);
+
+        // Porównaj nagłówki tupli
+        if (tuple1.getTxMin() != tuple2.getTxMin()) return false;
+        if (tuple1.getTxMax() != tuple2.getTxMax()) return false;
+        if (tuple1.getTCid() != tuple2.getTCid()) return false;
+        if (tuple1.getTInfomask() != tuple2.getTInfomask()) return false;
+        if (tuple1.getTHoff() != tuple2.getTHoff()) return false;
+        if (tuple1.getNullBitmap() != tuple2.getNullBitmap()) return false;
+        if (tuple1.getOptionalOid() != tuple2.getOptionalOid()) return false;
+
+        // Porównaj bitmapy i dane tupli
+        if (tuple1.getBitMap() != tuple2.getBitMap()) return false;
+        if (tuple1.getData() != tuple2.getData()) return false;
+    }
+
+    return true;
+}
 
 // ==================== TESTY KONSTRUKTORÓW ====================
 
@@ -484,4 +520,70 @@ TEST(Block8kbTest, FullIntegrationTest) {
     // Test metod pomocniczych
     EXPECT_NO_THROW(originalBlock.showData());
     EXPECT_NO_THROW(reconstructedBlock.showData());
+}
+
+
+//------------------------
+//------------------------
+//------------------------
+//------------------------
+
+// Dodaj na końcu pliku przed ostatnim #endif
+
+// ==================== TESTY MARSHALL/UNMARSHALL Z GETTERAMI ====================
+
+TEST(Block8kbTest, MarshallUnmarshallBasicGetters) {
+    block8kb block8kb1(1,2,3,4,5,6,7);
+    tuple tupleObj;
+    tupleObj.setData(100,200,1,0,24,true,5000,{false,true,false},{allVars(123),allVars("test"),allVars(43)});
+    block8kb1.addData(tupleObj);
+
+    std::vector<uint8_t> marshalledBlock = block8kb1.marshallBlock8kb();
+
+    block8kb block8kb2(0,0,0,0,0,0,0);
+    block8kb2.unmarshallBlock8kb(marshalledBlock);
+    
+    // SPRAWDŹ WSZYSTKIE GETTERY HEADERA BLOKU
+    EXPECT_EQ(block8kb1.getHeader()->getPdFlags(), block8kb2.getHeader()->getPdFlags());
+    EXPECT_EQ(block8kb1.getHeader()->getNextblock(), block8kb2.getHeader()->getNextblock());
+    EXPECT_EQ(block8kb1.getHeader()->getBlockIndetification(), block8kb2.getHeader()->getBlockIndetification());
+    EXPECT_EQ(block8kb1.getHeader()->getPdLsn(), block8kb2.getHeader()->getPdLsn());
+    EXPECT_EQ(block8kb1.getHeader()->getPdChecksum(), block8kb2.getHeader()->getPdChecksum());
+    //EXPECT_EQ(block8kb1.getHeader()->getPdLower(), block8kb2.getHeader()->getPdLower());
+    //EXPECT_EQ(block8kb1.getHeader()->getPdUpper(), block8kb2.getHeader()->getPdUpper());
+    
+    EXPECT_TRUE(check(block8kb1,block8kb2));
+}
+
+TEST(Block8kbTest, MultipleMarshallUnmarshallBasicGetters) {
+    block8kb block8kb1(1,2,3,4,5,6,7);
+    tuple tupleObj;
+    tupleObj.setData(100,200,1,0,24,true,5000,{false,true,false},{allVars(123),allVars("test"),allVars(43)});
+    block8kb1.addData(tupleObj);
+
+    tuple tupleObj1;
+    tupleObj1.setData(100,200,1,0,24,true,5000,{false,true,false},{allVars(123),allVars("test"),allVars(43)});
+    block8kb1.addData(tupleObj1);
+
+    std::vector<uint8_t> marshalledBlock = block8kb1.marshallBlock8kb();
+
+    block8kb block8kb2(0,0,0,0,0,0,0);
+    block8kb2.unmarshallBlock8kb(marshalledBlock);
+    
+    //header block chech
+    EXPECT_EQ(block8kb1.getHeader()->getPdFlags(), block8kb2.getHeader()->getPdFlags());
+    EXPECT_EQ(block8kb1.getHeader()->getNextblock(), block8kb2.getHeader()->getNextblock());
+    EXPECT_EQ(block8kb1.getHeader()->getBlockIndetification(), block8kb2.getHeader()->getBlockIndetification());
+    EXPECT_EQ(block8kb1.getHeader()->getPdLsn(), block8kb2.getHeader()->getPdLsn());
+    EXPECT_EQ(block8kb1.getHeader()->getPdChecksum(), block8kb2.getHeader()->getPdChecksum());
+    
+    // SPRAWDŹ ROZMIARY BLOKÓW
+    EXPECT_GT(block8kb1.getSize(), 0);
+    EXPECT_GT(block8kb2.getSize(), 0);
+    
+    EXPECT_TRUE(check(block8kb1,block8kb2));
+    // SPRAWDŹ ILOŚĆ TUPLI
+    //EXPECT_EQ(block8kb1.getTuples().size(), block8kb2.getTuples().size());
+    //EXPECT_GE(block8kb1.getTuples().size(), 1);
+    
 }
