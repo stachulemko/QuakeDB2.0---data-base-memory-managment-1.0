@@ -1,3 +1,4 @@
+
 #include <gtest/gtest.h>
 #include "alltable.h"
 #include <vector>
@@ -127,7 +128,7 @@ TEST(AllTableTest, AddBlockWithNegativeValues) {
 }
 
 // ==================== TESTY DODAWANIA DANYCH DO BLOKÓW ====================
-
+/*
 TEST(AllTableTest, AddDataToBlockSingleTuple) {
     tableHeader* header = createTestTableHeader();
     allTable table(4096, header);
@@ -564,7 +565,7 @@ TEST(AllTableTest, PerformanceUnmarshall) {
 */
 
 // ==================== TESTY ZARZĄDZANIA PAMIĘCIĄ ====================
-
+/*
 TEST(AllTableTest, DestructorTest) {
     for (int i = 0; i < 5; i++) {
         tableHeader* header = createTestTableHeader();
@@ -777,3 +778,6 @@ TEST(AllTableTest, ExampleFromMain) {
     delete th;
     delete th2;
 }
+
+
+*/

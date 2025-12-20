@@ -33,7 +33,7 @@ class allTable{
         ~allTable();
 
         std::vector<uint8_t> marshallAllTable();
-        
+        //nextblock in terms of extended freespace (vast number of updates)
         void addNewBlock(int32_t freeSpace,int32_t nextblock, int32_t blockIndetification, int32_t pd_lsn, int16_t pd_checksum, int16_t pd_flags, int8_t contain_toast){
             blockTmp = new block8kb(freeSpace,nextblock,blockIndetification,pd_lsn,pd_checksum,pd_flags,contain_toast);
         }
