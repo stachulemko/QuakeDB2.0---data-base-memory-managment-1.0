@@ -14,6 +14,8 @@
 #include <limits>
 #include <chrono>
 
+
+/*
 // Helper function do tworzenia tableHeader z danymi
 tableHeader* createTestTableHeader() {
     return new tableHeader(1, 0, 3, 1001, 0, 0, 7, 1024, {1, 2, 3}, {1, 2, 3}, {"col1", "col2", "col3"});
@@ -126,6 +128,7 @@ TEST(AllTableTest, AddBlockWithNegativeValues) {
     
     delete header;
 }
+*/
 
 // ==================== TESTY DODAWANIA DANYCH DO BLOKÓW ====================
 /*

@@ -3,6 +3,8 @@
 
 tableHeader::tableHeader(){
             oid = 0;
+            xmin = 0;
+            xmax = 0;
             contain_toast = 0;
             numberOfColumns = 0;
             owner = 0;
@@ -13,9 +15,9 @@ tableHeader::tableHeader(){
 
 tableHeader::~tableHeader(){}
 
-std::vector<uint8_t> tableHeader::marshallTableHeader(int32_t oid,int8_t contain_toast,int32_t numberOfColumns,int64_t owner,int8_t pg_namespace,int32_t pg_constraint,int8_t rights,int32_t freeSpace,std::vector<int8_t> types,std::vector<int8_t> typesWithAllowNull , std::vector<std::string> columnNames){
+std::vector<uint8_t> tableHeader::marshallTableHeader(int32_t oid, int64_t xmin, int64_t xmax, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights, int32_t freeSpace, std::vector<int8_t> types, std::vector<int8_t> typesWithAllowNull, std::vector<std::string> columnNames){
     std::vector<uint8_t> result;
-    int32_t sizeAll =33;
+    int32_t sizeAll = 49;  // Updated size: 33 + 8 (xmin) + 8 (xmax)
     std::vector<uint8_t>* typeTableHeader = marshalInt16_t(tableHeaderIndetification);
     result.insert(result.end(),typeTableHeader->begin(),typeTableHeader->end());
     delete typeTableHeader;
@@ -23,6 +25,16 @@ std::vector<uint8_t> tableHeader::marshallTableHeader(int32_t oid,int8_t contain
     std::vector<uint8_t>* oidBytes = marshalInt32_t(oid);
     result.insert(result.end(),oidBytes->begin(),oidBytes->end());
     delete oidBytes;
+
+    // Marshal xmin
+    std::vector<uint8_t>* xminBytes = marshalInt64_t(xmin);
+    result.insert(result.end(),xminBytes->begin(),xminBytes->end());
+    delete xminBytes;
+
+    // Marshal xmax
+    std::vector<uint8_t>* xmaxBytes = marshalInt64_t(xmax);
+    result.insert(result.end(),xmaxBytes->begin(),xmaxBytes->end());
+    delete xmaxBytes;
 
     std::vector<uint8_t>* toastBytes = marshalInt8_t(contain_toast);
     result.insert(result.end(),toastBytes->begin(),toastBytes->end());
@@ -121,7 +133,7 @@ std::vector<uint8_t> tableHeader::marshallTableHeader(int32_t oid,int8_t contain
 }
 
 void tableHeader::unmarshallTableHeader(const std::vector<uint8_t>& data){
-    if(data.size() < 22) return;
+    if(data.size() < 38) return;  // Updated minimum size
 
     int16_t typeTableHeader=0;
     int32_t tmpSize = 0;
@@ -135,6 +147,16 @@ void tableHeader::unmarshallTableHeader(const std::vector<uint8_t>& data){
     UnmarshalInt32_t(&tmpOid, &oidBin);
     this->oid = tmpOid;
     tmpSize+=4;
+
+    // Unmarshal xmin
+    std::vector<uint8_t> xminBin = std::vector<uint8_t>(data.begin() + tmpSize, data.begin() + tmpSize + 8);
+    UnmarshalInt64_t(&xmin, &xminBin);
+    tmpSize+=8;
+
+    // Unmarshal xmax
+    std::vector<uint8_t> xmaxBin = std::vector<uint8_t>(data.begin() + tmpSize, data.begin() + tmpSize + 8);
+    UnmarshalInt64_t(&xmax, &xmaxBin);
+    tmpSize+=8;
 
     //int8_t contain_toast=0;
     std::vector<uint8_t> toastBin = std::vector<uint8_t>(data.begin() + tmpSize, data.begin() + tmpSize + 1);

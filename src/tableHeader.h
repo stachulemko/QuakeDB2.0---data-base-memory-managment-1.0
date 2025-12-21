@@ -11,6 +11,8 @@ const int32_t tableHeaderSize = 8192;
 class tableHeader{
     private:
         int32_t oid=0;
+        int64_t xmin =0;
+        int64_t xmax = 0;
         int8_t contain_toast=0;
         int32_t numberOfColumns=0;
         int64_t owner=0;
@@ -27,8 +29,10 @@ class tableHeader{
 
         ~tableHeader();
 
-        void setData(int32_t oid, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights,int32_t freeSpace, std::vector<int8_t> types , std::vector<int8_t> typesWithAllowNull , std::vector<std::string> columnNames) {
+        void setData(int32_t oid,int64_t xmin,int64_t xmax, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights,int32_t freeSpace, std::vector<int8_t> types , std::vector<int8_t> typesWithAllowNull , std::vector<std::string> columnNames) {
             this->oid = oid;
+            this->xmin = xmin;
+            this->xmax = xmax;
             this->contain_toast = contain_toast;
             this->numberOfColumns = numberOfColumns;
             this->owner = owner;
@@ -42,15 +46,17 @@ class tableHeader{
         }
 
         std::vector<uint8_t> marshallTableHeaderWithData(){
-            return marshallTableHeader(oid,contain_toast,numberOfColumns,owner,pg_namespace,pg_constraint,rights,freeSpace,types,typesWithAllowNull,columnNames);
+            return marshallTableHeader(oid, xmin, xmax, contain_toast, numberOfColumns, owner, pg_namespace, pg_constraint, rights, freeSpace, types, typesWithAllowNull, columnNames);
         }
 
-        std::vector<uint8_t> marshallTableHeader(int32_t oid,int8_t contain_toast,int32_t numberOfColumns,int64_t owner,int8_t pg_namespace,int32_t pg_constraint,int8_t rights,int32_t freeSpace,std::vector<int8_t> types ,std::vector<int8_t> typesWithAllowNull , std::vector<std::string> columnNames);
+        std::vector<uint8_t> marshallTableHeader(int32_t oid, int64_t xmin, int64_t xmax, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights, int32_t freeSpace, std::vector<int8_t> types, std::vector<int8_t> typesWithAllowNull, std::vector<std::string> columnNames);
 
         void unmarshallTableHeader(const std::vector<uint8_t>& data);
 
         // Gettery
         int32_t getOid()  { return oid; }
+        int64_t getXmin()  { return xmin; }
+        int64_t getXmax()  { return xmax; }
         int8_t getContainToast()  { return contain_toast; }
         int32_t getNumberOfColumns()  { return numberOfColumns; }  
         int64_t getOwner()  { return owner; }
@@ -65,8 +71,10 @@ class tableHeader{
         std::vector<int8_t>getTypes()  { return types; }
         
 
-        tableHeader(int32_t oid,int8_t contain_toast,int32_t numberOfColumns,int64_t owner,int8_t pg_namespace,int32_t pg_constraint,int8_t rights,int32_t freeSpace,std::vector<int8_t> types,std::vector<int8_t> typesWithAllowNull , std::vector<std::string> columnNames){
+        tableHeader(int32_t oid, int64_t xmin, int64_t xmax, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights, int32_t freeSpace, std::vector<int8_t> types, std::vector<int8_t> typesWithAllowNull, std::vector<std::string> columnNames){
             this->oid = oid;
+            this->xmin = xmin;
+            this->xmax = xmax;
             this->contain_toast = contain_toast;
             this->numberOfColumns = numberOfColumns;
             this->owner = owner;
@@ -83,6 +91,8 @@ class tableHeader{
 
         void showData(){
             std::cout<<"oid: "<<oid<<std::endl;
+            std::cout<<"xmin: "<<xmin<<std::endl;
+            std::cout<<"xmax: "<<xmax<<std::endl;
             std::cout<<"contain_toast: "<<(int)contain_toast<<std::endl;
             std::cout<<"numberOfColumns: "<<numberOfColumns<<std::endl;
             std::cout<<"owner: "<<owner<<std::endl;
