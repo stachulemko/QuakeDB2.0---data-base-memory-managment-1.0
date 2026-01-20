@@ -1,4 +1,6 @@
 #include "fileManager.h"
+
+
 // Funkcja do zapisywania bloku do pliku .bin
 bool saveBlock(const std::string& path, const std::string& fileName, const std::vector<uint8_t>& blockData) {
     std::string fullPath = path + "/" + fileName + ".bin";
@@ -44,16 +46,51 @@ std::vector<uint8_t> loadBlock(const std::string& path, const std::string& fileN
 
 bool createBinFile(const std::string& path, const std::string& fileName) {
     std::string fullPath = path + "/" + fileName + ".bin";
-    
-    std::ofstream file(fullPath, std::ios::binary | std::ios::out);
-    
-    if (!file.is_open()) {
-        //std::cerr << "Nie można utworzyć pliku: " << fullPath << std::endl;
+
+    // Do not overwrite if it already exists
+    if (std::filesystem::exists(fullPath)) {
+        LOG_ERROR("File already exists, not overwriting: " + fullPath);
         return false;
     }
+
+    std::ofstream file(fullPath, std::ios::binary | std::ios::out | std::ios::trunc);
+
+    if (!file.is_open()) {
+        LOG_ERROR("Cannot create file: " + fullPath);
+        return false;
+    }
+    LOG_DEBUG("Clear file was created :" + fullPath);
+    file.close();
+    return true;
+}
+
+
+int32_t getFileSize(const std::string& path, const std::string& fileName){
+    std::string fullPath = path + "/" + fileName;
+    std::ifstream file(fullPath, std::ios::binary | std::ios::ate);
     
+    if (!file.is_open()) {
+        //std::cerr << "Nie można otworzyć pliku: " << fullPath << std::endl;
+        return -1; // Zwróć -1 w przypadku błędu
+    }
+    
+    std::streamsize size = file.tellg();
     file.close();
     
-    //std::cout << "Pusty plik .bin utworzony: " << fullPath << std::endl;
-    return true;
+    return static_cast<int32_t>(size);
+}
+
+
+void saveBlockWithNum(const std::string& path, const std::string& fileName, const std::vector<uint8_t>& blockData,int32_t blockNum){
+    std::string fullPath = path + "/" + fileName + ".bin";
+    std::ofstream file(fullPath, std::ios::binary | std::ios::in | std::ios::out);
+    LOG_DEBUG("data size to save: "<<blockData.size()<<" to file: "<<fullPath<<" at block number: "<<blockNum<<"\n");
+    if (!file.is_open()) {
+        //std::cerr << "Nie można otworzyć pliku: " << fullPath << std::endl;
+        return;
+    }
+    
+    file.seekp(blockNum * blockSize, std::ios::beg);
+    file.write(reinterpret_cast<const char*>(blockData.data()), blockData.size());
+    file.close();
 }
