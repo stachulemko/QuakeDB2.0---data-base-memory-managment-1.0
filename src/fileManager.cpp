@@ -82,10 +82,11 @@ int32_t getFileSize(const std::string& path, const std::string& fileName){
 
 
 void saveBlockWithNum(const std::string& path, const std::string& fileName, const std::vector<uint8_t>& blockData,int32_t blockNum){
-    std::string fullPath = path + "/" + fileName + ".bin";
+    std::string fullPath = path + "/" + fileName;
     std::ofstream file(fullPath, std::ios::binary | std::ios::in | std::ios::out);
     LOG_DEBUG("data size to save: "<<blockData.size()<<" to file: "<<fullPath<<" at block number: "<<blockNum<<"\n");
     if (!file.is_open()) {
+        LOG_ERROR("Cannot open file: " + fullPath);
         //std::cerr << "Nie można otworzyć pliku: " << fullPath << std::endl;
         return;
     }

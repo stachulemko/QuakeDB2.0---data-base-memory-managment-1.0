@@ -33,5 +33,5 @@ void showVariantVectorOfVector(std::vector<std::vector<allVars>> vec);
 std::vector<uint8_t> getBytes(const allVars& value);
 int32_t getSizeByVal(const allVars& value);
 allVars unmarshallBytes(std::vector<uint8_t> bytes, int16_t typeIndetification);  
-
+bool areTheSame(std::vector<int8_t> Columns ,std::vector<allVars> toAdd);
 #endif

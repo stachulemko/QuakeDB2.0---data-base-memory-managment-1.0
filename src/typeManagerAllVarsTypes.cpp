@@ -117,3 +117,15 @@ void showVariantVectorOfVector(std::vector<std::vector<allVars>> vec) {
         std::cout << std::endl;
     }
 }
+
+bool areTheSame(std::vector<int8_t> Columns ,std::vector<allVars> toAdd){
+    if(Columns.size() != toAdd.size()){
+        return false;
+    }
+    for(size_t i=0;i<Columns.size();i++){
+        if(getTypeId(toAdd[i]) != Columns[i]){
+            return false;
+        }
+    }
+    return true;
+}
