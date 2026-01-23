@@ -4,6 +4,7 @@
 #include <iostream>
 #include <variant>
 #include <vector>
+#include "../../bufforing-stm/src/log.h"
 
 extern const int16_t int32_tIndetification;
 extern const int16_t int64_tIndetification;

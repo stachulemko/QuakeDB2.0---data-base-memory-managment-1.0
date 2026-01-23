@@ -29,7 +29,9 @@ class tuple {
         std::vector<uint8_t> marshallTuple(int64_t xmin, int64_t xmax, int32_t cid, int32_t infomask, int16_t hoff, bool bitmap, int64_t oid, std::vector<bool>bitMap,std::vector<allVars>data);
 
         void unmarshallTuple(const std::vector<uint8_t>& data) ;
-
+        void setCid(int32_t cid){
+            header.setTCid(cid);
+        }
         int64_t getTxMin() const { return header.getTxMin(); }
         int64_t getTxMax() const { return header.getTxMax(); }
         int32_t getTCid() const { return header.getTCid(); }

@@ -47,7 +47,13 @@ class block8kb{
         }
 
 
-
+        bool filled(tuple& tupleObj){
+            if((getSize() + tupleObj.getSize()) <= blockSizeAfterFreeSpace){
+                return false;
+            }else{
+                return true;
+            }
+        }
         std::vector<uint8_t> marshallBlock8kb();
 
         void unmarshallBlock8kb(const std::vector<uint8_t>& data);

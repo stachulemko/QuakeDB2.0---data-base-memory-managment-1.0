@@ -119,11 +119,14 @@ void showVariantVectorOfVector(std::vector<std::vector<allVars>> vec) {
 }
 
 bool areTheSame(std::vector<int8_t> Columns ,std::vector<allVars> toAdd){
+    LOG_DEBUG("Checking types before inserting tuple\n");
     if(Columns.size() != toAdd.size()){
+        LOG_DEBUG("Type size mismatch: expected "<<Columns.size()<<" got "<<toAdd.size()<<"\n");
         return false;
     }
     for(size_t i=0;i<Columns.size();i++){
         if(getTypeId(toAdd[i]) != Columns[i]){
+            LOG_DEBUG("Type mismatch at index "<<i<<": expected "<<(int)Columns[i]<<" got "<<getTypeId(toAdd[i])<<"\n");
             return false;
         }
     }
