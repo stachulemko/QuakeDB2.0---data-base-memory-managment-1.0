@@ -23,7 +23,8 @@ bool createBinFile(const std::string& path, const std::string& fileName);
 std::vector<uint8_t> loadFileRange(const std::string& filePath, size_t startOffset, size_t bytesToRead);
 std::vector<uint8_t> loadBlockRange(const std::string& path, const std::string& fileName, const std::string& extension, size_t startOffset, size_t bytesToRead);
 int32_t getFileSize(const std::string& path, const std::string& fileName);
-
+bool checkIfFileExists(const std::string& path, const std::string& fileName);
+void clearFolder(const std::string& path);
 
 #endif
 

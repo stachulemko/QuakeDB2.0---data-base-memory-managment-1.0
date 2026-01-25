@@ -95,3 +95,14 @@ void saveBlockWithNum(const std::string& path, const std::string& fileName, cons
     file.write(reinterpret_cast<const char*>(blockData.data()), blockData.size());
     file.close();
 }
+
+bool checkIfFileExists(const std::string& path, const std::string& fileName){
+    std::string fullPath = path + "/" + fileName;
+    return std::filesystem::exists(fullPath);
+}
+
+void clearFolder(const std::string& path){
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        std::filesystem::remove_all(entry.path());
+    }
+}

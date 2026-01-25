@@ -70,7 +70,18 @@ class tableHeader{
         std::vector<std::string> getColumnNames()  { return columnNames; }
         std::vector<int8_t>getTypes()  { return types; }
         
-
+        void setXmin(int64_t xmin) { this->xmin = xmin; }
+        void setXmax(int64_t xmax) { this->xmax = xmax; }
+        void setContainToast(int8_t contain_toast) { this->contain_toast = contain_toast; }
+        void setNumberOfColumns(int32_t numberOfColumns) { this->numberOfColumns = numberOfColumns; }
+        void setOwner(int64_t owner) { this->owner = owner; }
+        void setPgNamespace(int8_t pg_namespace) { this->pg_namespace = pg_namespace; }
+        void setPgConstraint(int32_t pg_constraint) { this->pg_constraint = pg_constraint; }
+        void setRights(int8_t rights) { this->rights = rights; }
+        void setFreeSpace(int32_t freeSpace) { this->freeSpace = freeSpace; }
+        void setTypes(std::vector<int8_t> types) { this->types = types; }
+        void setTypesWithAllowNull(std::vector<int8_t> typesWithAllowNull) { this->typesWithAllowNull = typesWithAllowNull; }
+        void setColumnNames(std::vector<std::string> columnNames) { this->columnNames = columnNames; }
         tableHeader(int32_t oid, int64_t xmin, int64_t xmax, int8_t contain_toast, int32_t numberOfColumns, int64_t owner, int8_t pg_namespace, int32_t pg_constraint, int8_t rights, int32_t freeSpace, std::vector<int8_t> types, std::vector<int8_t> typesWithAllowNull, std::vector<std::string> columnNames){
             this->oid = oid;
             this->xmin = xmin;
